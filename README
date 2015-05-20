@@ -1,0 +1,11 @@
+This is openbinder: http://en.wikipedia.org/wiki/OpenBinder
+
+OpenBinder is a system for Inter-process communication. It was developed
+at Be Inc. and then Palm, Inc. and was the basis for the Binder framework
+now used in the Android operating system developed by Google.
+
+The sources texts were taken from the following URL:
+http://www.angryredplanet.com/~hackbod/openbinder/openbinder-12-28-2005.tar.gz
+
+A binderdev kernel module can be compiled for the following openvz kernels:
+ 2.6.9, 2.6.18
