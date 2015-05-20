@@ -366,7 +366,7 @@ binder_thread_Control(binder_thread_t *that, unsigned int cmd, void *buffer)
 			break;
 		case BINDER_SET_CONTEXT_MGR:
 			if (size >= 4 && BND_ATTEMPT_ACQUIRE(binder_proc, that->m_team, STRONG, that)) {
-				DPRINTF(2, (KERN_WARNING "bcSET_CONTEXT_MANAGER attempt by %p\n", that->m_team));
+				DPRINTF(2, (KERN_WARNING "BINDER_SET_CONTEXT_MGR attempt by %p\n", that->m_team));
 				// LOCK
 				// check for existing context
 				BND_LOCK(gContextManagerNodeLock);

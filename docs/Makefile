@@ -12,15 +12,17 @@ $(DOXYGEN_CONFIG_FILE): $(addprefix $(BUILD_SYSTEM)/doxygen/,$(CONFIGS))
 
 .PHONY: docs
 docs:: $(DOXYGEN_CONFIG_FILE) interfaces
-	mkdir -p $(OUT_DOCS)
-	cp -rf $(LOCAL_PATH)/raw/* $(OUT_DOCS)
-	( \
+	[ ! -d $(OUT_DOCS) ] && { \
+	    mkdir -p $(OUT_DOCS); \
+	    cp -rf $(LOCAL_PATH)/raw/* $(OUT_DOCS); \
+	    ( \
 		export PROJECT_NAME=OpenBinder; \
 		export ROOT=$(PWD)/$(TOP); \
 		export OUTPUT_DIRECTORY=$(PWD)/$(OUT_DOCS); \
 		cd $(BUILD_SYSTEM)/doxygen; \
 		$(DOXYGEN) $(PWD)/$< \
-	)
+	    ); \
+	} || true
 
 docs:: LOCAL_PATH:= $(LOCAL_PATH)
 

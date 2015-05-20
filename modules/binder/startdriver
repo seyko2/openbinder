@@ -2,5 +2,5 @@
 make modules_install
 depmod
 modprobe binderdev
-echo lsmod | grep binder
+echo "lsmod | grep binder"
 lsmod | grep binder

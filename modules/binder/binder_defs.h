@@ -21,6 +21,7 @@
 
 #include <asm/atomic.h>
 #include <asm/semaphore.h>
+//#include <linux/semaphore.h>
 #include <linux/delay.h>
 #include <linux/types.h>
 #include <linux/slab.h>
@@ -81,6 +82,7 @@ void soft_yield(void);
 #define DBREAD(x) printk x
 
 #else
+#define VALIDATES_BINDER 0
 #define DIPRINTF(level,a)
 #define DPRINTF(level,a)
 #define BND_FAIL(msg)
@@ -111,7 +113,10 @@ struct binder_thread;
 
 typedef ssize_t status_t;
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,13)
 typedef unsigned int bool;
+#endif
+
 #define FALSE (0)
 #define TRUE (~FALSE)
 

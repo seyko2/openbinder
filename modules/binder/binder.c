@@ -67,11 +67,13 @@ struct binder_thread* find_thread(pid_t pid, binder_proc_t *proc, bool remove);
 #else
 #define USE_UNLOCKED_IOCTL 0
 #endif
+
 #if USE_UNLOCKED_IOCTL
 static long binder_unlocked_ioctl(struct file *, unsigned int, unsigned long);
 #else
 static int binder_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
 #endif
+
 static int binder_open(struct inode *, struct file *);
 static int binder_release(struct inode *, struct file *);
 static int binder_mmap(struct file *, struct vm_area_struct *);
@@ -434,7 +436,12 @@ static int __init init_binder(void)
 		goto unregister_class;
 	}
 
-	simple = CLASS_SIMPLE_DEVICE_ADD(binder_class, dev, NULL, "%s", BINDER_NAME);
+	simple = CLASS_SIMPLE_DEVICE_ADD(binder_class,
+	    #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,18)
+		NULL,
+	    #endif
+	     dev, NULL, "%s", BINDER_NAME);
+
 	if (IS_ERR(simple)) {
 		result = PTR_ERR(simple);
 		goto unadd_cdev;

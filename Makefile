@@ -202,6 +202,8 @@ endif
 realclean::
 ifeq ($(NO_MODULES),)
 	@$(MAKE) -C $(SRC_MODULES)/binder clean
+	-@rm $(SRC_MODULES)/binder/Module.markers
+	-@rm $(SRC_MODULES)/binder/Module.symvers
 endif
 	@rm -rf build
 	@echo "Entire build directory removed."
