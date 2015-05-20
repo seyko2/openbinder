@@ -437,7 +437,7 @@ static int __init init_binder(void)
 	}
 
 	simple = CLASS_SIMPLE_DEVICE_ADD(binder_class,
-	    #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,18)
+	    #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,15)
 		NULL,
 	    #endif
 	     dev, NULL, "%s", BINDER_NAME);
