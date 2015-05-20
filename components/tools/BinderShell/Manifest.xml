@@ -1,0 +1,149 @@
+<manifest>
+	<component >
+		<interface name="org.openbinder.tools.ICommand" />
+	</component>
+	<component local="VM">
+	</component>
+	<component local="ConditionVariable" >
+	</component>
+
+
+	<component local="Shell" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">sh</property>
+	</component>
+	<component local="Help" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">help</property>
+	</component>
+	<component local="Db" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">db</property>
+	</component>
+	<component local="Reboot" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">reboot</property>
+	</component>
+	<component local="Sleep" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">sleep</property>
+	</component>
+	<component local="StrError" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">strerror</property>
+	</component>
+	<component local="Echo" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">echo</property>
+	</component>
+	<component local="Env" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">env</property>
+	</component>
+	<component local="Components" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">components</property>
+	</component>
+	<component local="Context" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">context</property>
+	</component>
+	<component local="SU" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">su</property>
+	</component>
+	<component local="New" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">new</property>
+	</component>
+	<component local="NewProcess" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">new_process</property>
+	</component>
+	<component local="StopProcess" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">stop_process</property>
+	</component>
+	<component local="Inspect" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">inspect</property>
+	</component>
+	<component local="Invoke" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">invoke</property>
+	</component>
+	<component local="Put" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">put</property>
+	</component>
+	<component local="Get" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">get</property>
+	</component>
+	<component local="Ls" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">ls</property>
+	</component>
+	<component local="Publish" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">publish</property>
+	</component>
+	<component local="Unpublish" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">unpublish</property>
+		<property id="bin" type="string">rm</property>
+	</component>
+	<component local="Lookup" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">lookup</property>
+		<property id="bin" type="string">walk</property>
+	</component>
+	<component local="Mkdir" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">mkdir</property>
+	</component>
+	<component local="Link" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">link</property>
+		<property id="bin" type="string">unlink</property>
+	</component>
+	<component local="Test" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">[</property>
+		<property id="bin" type="string">test</property>
+	</component>
+	<component local="Spawn" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">spawn</property>
+	</component>
+	<component local="Spawn.Faerie" >
+	</component>
+	<component local="True" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">true</property>
+	</component>
+	<component local="False" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">false</property>
+	</component>
+	<component local="Time" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">time</property>
+	</component>
+	<component local="Push" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">push</property>
+	</component>
+	<component local="Clear" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">clear</property>
+	</component>
+
+	<component local="Cat" >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">cat</property>
+	</component>
+
+</manifest>
+
+

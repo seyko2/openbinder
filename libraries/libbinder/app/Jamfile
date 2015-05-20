@@ -1,0 +1,22 @@
+###############################################################################
+#
+# Copyright (c) 2002-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+appSources = 	
+#		IApplication.cpp
+#		IApplicationManager.cpp
+		ICommand.cpp
+		ITerminalView.cpp
+		IProgress.cpp
+
+#		ILegacyEventQueue.cpp
+
+		SGetOpts.cpp
+		BCommand.cpp
+		;

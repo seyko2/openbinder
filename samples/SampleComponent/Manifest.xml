@@ -1,0 +1,6 @@
+<manifest>
+	<component>
+		<interface name="org.openbinder.app.ICommand" />
+		<property id="bin" type="string">sample_component</property>
+	</component>
+</manifest>

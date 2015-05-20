@@ -1,0 +1,59 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+/*!	@file support/ICatalogPermissions.idl
+	@ingroup CoreSupportDataModel
+
+	@brief Modification to ICatalog without touching the original catalog.
+*/
+
+import <support/ICatalog.idl>
+
+namespace palmos {
+namespace support {
+
+//! ICatalogPermissions provides for ICatalog modifications.
+/*! But without modifying the original catalog.
+	It might seem that ICatalogPermissions should be called
+	something different and should inherit from ICatalog.
+	However, we need to separate the interfaces for
+	security purposes. (If you have an ICatalog, that is
+	all you can see, but if you have an ICatalogPermissions
+	then you can work with both interfaces.)
+
+	@ingroup CoreSupportDataModel
+*/
+interface ICatalogPermissions
+{
+properties:
+	bool writable;
+
+methods:
+	//! Hide an entry from the original catalog
+	status_t HideEntry(SString name);
+
+	//! Show an entry that was previously hidden
+	status_t ShowEntry(SString name);
+	
+	//! Overlay an entry in the original catalog
+	/*! Overlay an entry in the original catalog
+	 *	with the replacement.
+	 */
+	status_t OverlayEntry(SString location, SValue item);
+
+	//! Restore an entry that was previously replaced
+	status_t RestoreEntry(SString location);
+
+	status_t Merge(ICatalog catalog);
+}
+
+} }	// namespace palmos::support

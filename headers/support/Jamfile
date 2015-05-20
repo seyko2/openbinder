@@ -1,0 +1,19 @@
+###############################################################################
+#
+# Copyright (c) 2002-2003 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.0
+#
+###############################################################################
+
+# Jamfile to build support headers
+PSSubDir TOP headers PDK support ;
+
+# Define local files
+local files =
+	[ Glob $(SUBDIR) : *.h ]
+	;
+
+PdkFile $(files) ;

@@ -1,0 +1,29 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+namespace org {
+namespace openbinder {
+namespace samples {
+
+//! This is an example of a Binder interface.
+/*!	This sample interface contains a simple function that returns an
+	integer.  You can find many other examples of more complex interfaces
+	in interfaces/PDK/...
+*/
+interface ISampleService
+{
+methods:
+	//!	Increment a global variable and return it.
+	int32_t				Test();
+}
+
+} }	} // namespace org::openbinder::samples

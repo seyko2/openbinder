@@ -1,0 +1,12 @@
+<manifest>
+	<component >
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">bperf</property>
+	</component>
+	<component local="TransactionTest">
+	</component>
+	<component local="ImplementsIProcess">
+	</component>
+	<component local="ImplementsIView">
+	</component>
+</manifest>

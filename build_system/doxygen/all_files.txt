@@ -1,0 +1,10 @@
+# Standard files to include/exclude for internal documentation builds.
+
+STRIP_FROM_INC_PATH=$(ROOT)/build/headers \
+	$(ROOT)/headers \
+
+INPUT=$(ROOT)/build_system/doxygen/mainpage.h \
+	$(ROOT)/docs \
+	$(ROOT)/build/headers \
+	$(ROOT)/headers \
+	$(ROOT)/libraries \

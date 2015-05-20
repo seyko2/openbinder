@@ -1,0 +1,5 @@
+<manifest>
+	<component>
+		<interface name="org.openbinder.samples.ISampleService" />
+	</component>
+</manifest>

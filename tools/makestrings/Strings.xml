@@ -1,0 +1,13 @@
+<strings>
+<string>
+	<key>America/Denver</key>
+<value locale="enUS">USA (Mountain)</value>
+<value locale="frFR">Etats-Unis (Rocheuses)</value>
+</string>
+
+<string>
+<key>America/Los_Angeles</key>
+<value locale="enUS">USA (Pacific)</value>
+<value locale="frFR">Etats-Unis (Pacifique)</value>
+</string>
+</strings>

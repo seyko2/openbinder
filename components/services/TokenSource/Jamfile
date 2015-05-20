@@ -1,0 +1,21 @@
+###############################################################################
+#
+# Copyright (c) 2001-2002 PalmSource, Inc. or its subsidiaries.
+# All rights reserved.
+#
+# File: Jamfile
+#
+###############################################################################
+
+PSSubDir TOP components services token_source ;
+
+# Define local sources
+local sources =
+	main_token_source.cpp
+	;
+		
+local PKGNAME = org.openbinder.services.TokenSource ;
+
+Component TokenSource :
+	$(sources)
+	;

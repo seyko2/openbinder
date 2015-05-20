@@ -1,0 +1,47 @@
+ 				   /*******************************************
+								   DON'T PANIC
+				   *******************************************/
+
+				Your Friendly Guide to Bastardizing Interface Files
+
+
+HOW TO WRITE AN .IDL FILE
+IDL files are made up of interface declarations.  For sample IDL files see either
+IVirtualMachine.idl or ITask.idl in the Pidgen Files.  An interface has two parts
+- the interface header and interface body.  The header part is where the header
+directory and cppnamespaces are declared.  Everything else goes into interface body -
+methods you declare for the interface, typedefs, etc, etc.  Local and Remote classes
+are generated for you a la these declarations.  To forward declare an interface, simply
+declare something like this
+
+	interface IContext
+
+take care not to sandwhich this declaration between the header and body of another
+interface declaration.  The parser will not like this and declare it invalid.
+
+Syntax is C++-like and self-explanatory.  Also, it is mostly compatible with Microsoft's
+MIDL syntax - if you're really lost the MIDL Language reference on MS's website is a
+good guess for how to declare most of the basic things
+
+
+
+FEATURES
+1) supported types - see supported_types.txt - note we only have sptr now(no wptr
+		or raw pointers) 
+2) typedefs - Pidgen supports limited typedefs(i.e., no enumerated types), only
+		simple types now
+3) forward dcl of interfaces - yes
+4) includes - support is poor now - if you absolutely must have includes you can
+		have a single level (i.e., <TypeParser.h>) but no more.  also double quotes
+		not supported.
+
+
+
+HOW TO USE PIDGEN
+grab the Pidgen sources from p4, do a build if you're in BeOS or build Binder.sln
+if you're using Visual Studios.  Find the executable and feed the IDL file to Pidgen.
+Note that the parser for Pidgen is built with Yacc and extremely sensitive to err - you
+can't have an extra comma anywhere, Pidgen will have a stomach ache!  Syntax debugging
+is on by default for the parser, so you will be able to see where Pidgen craps out.   
+
+Trillian

@@ -1,0 +1,1 @@
+cmd_/home/jparks/src/open-source/openbinder/modules/binder/binderdev.ko := ld -m elf_i386 -r -o /home/jparks/src/open-source/openbinder/modules/binder/binderdev.ko /home/jparks/src/open-source/openbinder/modules/binder/binderdev.o /home/jparks/src/open-source/openbinder/modules/binder/binderdev.mod.o

@@ -1,0 +1,143 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+import <app/IApplication.idl>
+
+namespace palmos {
+namespace app {
+
+interface IApplicationManager
+{
+	//! returned from RemoteSublaunch, FinishRecursiveSublaunch and DoDeferredSublaunch
+	//! as the recurse paramater
+	enum {
+		NO_RECURSE,
+		DO_LOCAL,
+		DO_RECURSIVE
+	};
+
+	enum {
+		// the low 16 bits here are the launchFlags that go to PilotMain
+		PREFER_LOCAL	= 0x00010000,
+		USE_FAERIE		= 0x00020000
+	};
+
+	// returned by ProcessReady to tell you what to do
+	enum {
+		MAIN_APP_PROCESS,
+		SUBLAUNCH_PROCESS
+	};
+
+
+methods:
+	/*!	Get back the info (from the package manager) for this AppID
+	*/
+	SValue		InfoForAppID(uint32_t appID);
+
+	/*! Tells the application stack to quit, and starts a new one.
+	*/
+	status_t	SwitchApplications(uint32_t appDB, uint16_t cmd, SValue paramValue);
+	
+	/*!	Pushes another application on to the application stack.  Will
+		make sure that if an app is sublaunched twice in the stack, 
+		it is run in only one process at a time.  SysAppLaunch (the
+		purely local one) does not affect this behavior.
+			- The app paramater is as in SwitchApplications.
+			  There are some secret things it will do.
+			- If useFaerir is true, the launch will go through the faerie instead
+			- If recurse comes back true, you'll have to call back
+			  into your PilotMain, possibly doing a faerie.
+	*/
+	status_t	RemoteSublaunch(uint32_t appDB, uint16_t cmd, SValue paramValue, [out]uint32_t result, uint32_t flags,
+								IBinder token, [out]uint32_t recurse,
+								[out]uint32_t recurseAppDB, [out]uint16_t recurseCMD, [out]SValue recurseParamValue, [out]uint32_t recurseFlags);
+
+	/*!	If RemoteSublaunch comes back with the recurse flag set, do the recursive sublaunch,
+		and go back into this function.  It will return, saying whether you need to do more
+		recursive sublaunches, or if you're done.
+	*/
+	status_t	FinishRecursiveSublaunch(IBinder token, [inout]uint32_t recurse, [inout]uint32_t recurseAppDB, [inout]uint16_t recurseCMD,
+											[inout]SValue recurseParamValue, [inout]uint32_t recurseFlags, [inout]uint32_t result);
+	
+	/*!	Enqueues a deferred sublaunch.  Eventually, hopefully, the event
+		loop will get to a point where either someone does a RemoteSublaunch,
+		or into EvtGetEvent, where someone will call DoDeferredSublaunch.
+		Same parameters as RemoteSublaunch.  only honors the USE_FAERIE flag
+	*/
+	status_t	EnqueueDeferredSublaunch(uint32_t appDB, uint16_t appCMD, SValue appParam, uint32_t flags);
+
+	/*! Called from within EvtGetEvent when there is a deferred sublaunch waiting.
+		Paramaters are as in RemoteSublaunch.
+	*/
+	status_t	DoDeferredSublaunch([out]uint32_t recurse,
+								[out]uint32_t recurseAppDB, [out]uint16_t recurseCMD, [out]SValue recurseParamValue, [out]uint32_t recurseFlags);
+	
+
+	/*! Called when a new process is started, and wants to be told what to do.
+		Hold onto the token as long as you want the app manager to think you're alive.
+	*/
+	status_t	ProcessReady([out] uint32_t processType, [out]uint32_t appDB, [out]uint16_t cmd, [out]SValue paramValue, [out]uint32_t flags, [out]IBinder token);
+	
+	/*! Called when that process is done.  After you've called this, you can release
+		the token, as it's no longer needed.
+	*/
+	void		ProcessFinished(IBinder token, SValue paramValue, uint32_t result);
+
+
+	
+	/*!	Called when an application starts up to make itself the
+		current active app.  Returns the nesting level of the
+		application (0 if this is the top app) or an error code.
+	*/
+	ssize_t		PushApplication(IApplication app);
+
+	/*!	Called when an application exits to allow the previous
+		app to become current.
+	*/
+	status_t	PopApplication(IApplication app, SValue result);
+
+	/*!	When called, any open UI dialogs should be closed.  For example,
+		as a result of an app switch.  You can link to "ClearUI" to find
+		out when you should remove dialogs.
+	*/
+	void		ClearUI();
+
+	/*!	This is called when the current application has gone idle,
+		resulting in the ApplicationIdle() event being pushed.
+	*/
+	void		ReportApplicationIdle();
+
+	/*!	These are used to detect when applications are stuck, to
+		give the user a chance to kill them.  Releasing a watchdog
+		returns an identifier, which is passed in to LeashWatchdog()
+		to inform the application manager that the operation has
+		completed.  The value returned by ReleaseWatchog is
+		guaranteed to be > 0.
+	*/
+	int32_t		ReleaseWatchdog([optional]nsecs_t timeout);
+	void		LeashWatchdog(int32_t dog);
+
+properties:
+	/*!	true if the system boot has gotten to the point
+		where applications have started.  Used so we can power off
+		before that.
+	*/
+	[readonly]bool	hasRunApplications;
+
+events:
+	/*!	Pushed when the current application has gone idle (by
+		calling ReportApplicationIdle()). */
+	void		ApplicationIdle();
+}
+
+} }	// namespace palmos::app
+

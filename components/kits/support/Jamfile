@@ -1,0 +1,23 @@
+###############################################################################
+#
+# Copyright (c) 2001-2003 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.0
+#
+###############################################################################
+
+# Jamfile to build MemoryDealer
+PSSubDir TOP components kits support ;
+
+# Define local sources
+local sources =
+	SupportComponents.cpp
+	;
+
+# Set local vars
+local PKGNAME = org.openbinder.kits.support ;
+
+# Build the component
+Component support : $(sources) Strings.xml ;

@@ -1,0 +1,189 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+/*!	@file support/ITable.idl
+	@ingroup CoreSupportDataModel
+
+	@brief Data model object holding a 2d data structure.
+*/
+
+namespace palmos {
+namespace support {
+
+interface INode
+
+//!	Extended interface to an IIterable holding a 2d data structure.
+/*!	The ITable interface provides special extended operations
+	for IIterable objects @ref BinderDataModel that are holding
+	two-dimensional data such as an array of structures.
+
+	An object that implements ITable will always implement
+	IIterable -- ITable is essentially another way
+	to manipulate data that you would normally retrieve through
+	queries on an IIterable.  These objects will also usually
+	implement INode and ICatalog, though they may not do so
+	if the table rows do not have names (as is the case with
+	a raw database table).  They may also implement more
+	specialized interfaces such as IMenuData.
+
+	An ITable can generally be thought of as a database
+	table, where all rows in the table has a fixed number of
+	columns that are defined by that table.  Such a structure
+	is used extensively, for example, to provide data to an
+	IListView, which is the facility for displaying such
+	two-dimensional data structures.  Note, however, that
+	IListView itself only needs an IIterable for accessing
+	that data -- the ITable provides additional or more
+	optimal features beyond the basic IIterable facilities,
+	for manipulating and monitoring the data in a table.
+	Some ITable objects also allow you to add and remove
+	columns from the table.
+
+	@todo I think it would be cleaner to get rid of the
+	CreateRow() and RemoveNode() APIs, putting that
+	functionality on ICatalog so it continues to be your
+	one-stop-shopping for manipulating entries.  This interface
+	then is just very specific table operation -- monitoring
+	table changes, and finding and manipulating columns.
+
+	@ingroup CoreSupportDataModel
+*/
+interface ITable
+{
+	//!	Flags for ITable::TableChanged event.
+	enum
+	{
+		//!	Used in ITable::TableChanged when a detailed event was also sent.
+		/*!	You can use this flag to determine if the table has also pushed
+			one of the most detailed change events.  If it is not sent, then
+			this is the ONLY change notifications you will get, and you can't
+			make any more assumptions about the contents of the table.  If it
+			is set and you have linked to the other change events, you can
+			safely ignore this event.
+		*/
+		CHANGE_DETAILS_SENT	= 0x0001
+	};
+
+properties:
+	//!	Return set of column names.
+	/*!	@todo Should be replaced with an IIterable interface. */
+	[readonly]SValue columnNames;
+	//!	Return all information about columns.
+	/*!	@todo Should be replaced with an IIterable interface. */
+	[readonly]SValue schema;
+	
+methods:
+	//!	Create a new row in the table.
+	/*!	@param[in,out] name Incoming, the desired name for the
+			new row.  Outgoing, the actual name that was used.
+			Some table may completely ignore your desired
+			name and use their own.  Alternatively, a table
+			may use your name as-is, and return an error if an
+			entry with that name already exists.  A table
+			may even not have names at all, in which case the
+			name will be returned with the value "".
+		@param[in] columns Any initial values you would like
+			for the columns in this row.  This is a set of
+			mappings, where the key is the name of the column
+			and the value is the data to place in the row for
+			that column.
+		@param[in] flags Additional control flags.  None
+			currently defined.
+		@param[out] createdRow Optional output of the INode
+			object representing the new row.
+		@result B_OK on success, else an appropriate error code.
+
+		@todo This should probably be removed from this
+		interface, and the ICatalog::CreateNode() API extended to
+		have all of this functionality.
+	*/
+	status_t CreateRow([inout]SString name, SValue columns, [optional]uint32_t flags, [out optional]INode createdRow);
+
+	//!	Remove an existing row from the table.
+	/*!	@param[in] row The row to be removed.
+		@result B_OK if the entry was removed, some other error code
+			on error.  In particular, B_ENTRY_NOT_FOUND if the given
+			INode does not map to a row in the table.
+
+		This is like ICatalog::RemoveEntry(), but allows you to
+		identify the row to be removed through its INode object.
+		This allows it to work with tables that do not have names
+		for their rows -- that is, a table that is only an IIterable.
+
+		@todo This should probably be removed from this
+		interface, and put on ICatalog.
+	*/
+	status_t RemoveRow(INode row);
+
+	//!	Add a new column to the table.
+	/*!	@param[in] name Name of the new column.  Must be unique.
+		@param[in] typeCode Data type of the new column, such as B_INT32_TYPE.
+		@param[in] maxSize For data types that are variable length (such
+			as B_STRING_TYPE), this is the maximum amount of data it can
+			contain.  For fixed-length types, this is ignored, or the table
+			may simply ignore it completely and not impose a size limit.
+		@param[in] flags Additional information about the column.
+		@param[in] extras For future extension.
+		@result B_OK if the column was successfully added, B_NAME_IN_USE
+			if there is already a column with this name, etc.
+
+		Some tables are dynamic, allow you to add and/or remove
+		columns.  If supported, this API lets you create a new
+		column in the table.
+	*/
+	status_t AddColumn(SString name, uint32_t typeCode, size_t maxSize, uint32_t flags, SValue extras);
+
+	//!	Remove an existing column from the table.
+	/*!	@param[in] name Name of the column to be removed.
+		@result B_OK if the column was successfully added, B_NAME_NOT_FOUND
+			if there is no column with the given name, etc.
+
+		Some tables are dynamic, allow you to add and/or remove
+		columns.  If supported, this API lets you remove columns
+		from the table.
+	*/
+	status_t RemoveColumn(SString name);
+
+events:
+	//!	This event is sent whenever some change happens in the table.
+	/*!	@param[in] who The table that has changed.
+		@param[in] flags Provides more information about the change.
+		@param[in] hints May provide even more info, but is currently unnused.
+
+		This event indicates that something has changed in the table,
+		but not what that change is.  If the table is not also pushing
+		another change event (as indicated by the CHANGE_DETAILS_SENT
+		flag), then you can't assuming anything about the current
+		contents of the table.
+
+		This event is a superset of the INode::NodeChanged() event -- it
+		tells you about changes both to the rows, as well as the cells
+		inside of each of those rows.
+	*/
+	void TableChanged(ITable who, uint32_t flags, SValue hints);
+
+	//! This event is sent when a cell (data associated with a row and column) in a table is modified.
+	/*! @param[in] who The parent table in which this change occured.
+		@param[in] row The name of the row entry that changed.
+		@param[in] column The name of the column that changed.
+		@param[in] entry The entry itself, either an INode or IDatum.
+
+		This informs you of a non-structural change to the table, where
+		the data inside one of its cells has changed.  The IBinder @a entry identifying
+		the changed cell is the same IBinder that is returned by Walk()
+		and IIterator, and follows the same identity rules as defined
+		for those APIs.
+	*/
+	void CellModified(ITable who, SString row, SString column, IBinder entry);
+}
+
+} }	// namespace palmos::support

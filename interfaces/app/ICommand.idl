@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+import <support/IByteStream.idl>
+
+namespace palmos {
+namespace app {
+
+interface ICommand
+{
+	typedef sequence<SValue> ArgList;
+	
+methods:
+	SValue					Run(ArgList args);
+	ICommand				Spawn(SString command) const;
+	void					SetProperty(SValue key, SValue value);
+	SValue					GetProperty(SValue key) const;
+	void					RemoveProperty(SValue key);
+
+	void					SetFileDescriptors(SValue fds);
+
+	void					AddCommand(SString name, ICommand command);
+	ICommand				GetCommand(SString name) const;
+	void					RemoveCommand(SString name);
+
+properties:
+	IByteInput				byteInput;
+	IByteOutput				byteOutput;
+	IByteOutput				byteError;
+	SValue					environment;
+	[readonly]SString		documentation;
+}
+
+} }	// namespace palmos::app

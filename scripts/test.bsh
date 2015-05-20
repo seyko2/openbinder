@@ -1,0 +1,9 @@
+# This is a simple BinderShell script to run
+# bperf, a Binder command for basic performance
+# and validation tests.
+
+echo "Current environment: " $[env]
+
+res=$[bperf -v -A]
+
+echo "Test result: " $res

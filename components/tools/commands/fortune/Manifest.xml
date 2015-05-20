@@ -1,0 +1,6 @@
+<manifest>
+	<component>
+		<interface name="org.openbinder.tools.ICommand" />
+		<property id="bin" type="string">fortune</property>
+	</component>
+</manifest>

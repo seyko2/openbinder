@@ -1,0 +1,50 @@
+###############################################################################
+#
+# Copyright (c) 2002-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+# Jamfile to build SampleComponent
+PSSubDir TOP samples SampleComponent ;
+
+# Set local vars
+local CREATOR = cmex ;
+local TYPE = libr ;
+local PDBNAME = Sample_Component ;
+local PKGNAME = vendor.samples.SampleComponent ;
+
+# Define local sources
+local sources =
+	SampleComponent.cpp
+	main_samplecomponent.cpp
+	;
+
+# Localized resources
+#OverlayPrc Sample_Component ;
+
+# Build the component
+Component Sample_Component.prc :
+	SampleComponent.xrd
+
+	$(sources)
+	;
+	
+# Build the deliverables
+if ! $(PALMSOURCE_DEV_KIT)
+{
+	local hdrfiles = [ Glob $(SUBDIR) : *.h ] ;
+	PdkFile
+		$(sources)
+		$(hdrfiles)
+		README.txt
+		Manifest.xml
+		Jamfile
+		:
+			[ FDirName $(BUILD_DIR) PDK samples SampleComponent ]
+		;
+}
+

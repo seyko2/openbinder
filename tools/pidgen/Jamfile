@@ -1,0 +1,306 @@
+###############################################################################
+#
+# Copyright (c) 2003-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+###############################################################################
+
+# Jamfile to build pidgen
+
+# NOTE: Do not include SubDir or PSSubDir. This build does not need or want
+# the project rules file read in -- it relies solely on standard Jambase.
+
+# Set build output dir
+if $(BUILD_DIR) {
+	BUILD_DIR = $(BUILD_DIR:R=$(TOP)) ;
+} else {
+	BUILD_DIR = [ FDirName $(TOP) build ] ;
+}
+
+NEWLINE = "
+" ;
+
+if $(OS) = NT {
+actions together Archive bind NEEDLIBS
+{
+    copy /Y nul: $(<:S=.tmp) > nul
+    echo.$(>)>>$(<:S=.tmp)$(NEWLINE)
+    echo.$(NEEDLIBS)>>$(<:S=.tmp)$(NEWLINE)
+    $(AR) $(ARFLAGS) /out:$(<) @$(<:S=.tmp)
+}
+
+actions Link bind NEEDLIBS
+{
+    copy /Y nul: $(<:S=.tmp) > nul
+    echo.$(>)>>$(<:S=.tmp)$(NEWLINE)
+    echo.$(LINKLIBS)>>$(<:S=.tmp)$(NEWLINE)
+    echo.$(NEEDLIBS)>>$(<:S=.tmp)$(NEWLINE)
+    $(LINK) $(LINKFLAGS) /out:$(<) $(UNDEFS) @$(<:S=.tmp)
+}
+
+actions piecemeal existing Clean
+{
+	$(RM) $(>)
+}
+
+actions MkDir1
+{
+	IF NOT EXIST "$(<)" $(MKDIR) "$(<)"
+}
+} else {
+C++  = g++ ;
+CC   = gcc ;
+LINK = g++ ;
+}
+
+# Define vars
+if $(MSVCNT)
+{
+	AR = "link -lib /nologo" ;
+	LEX = [ FDirName $(TOP) build_system windows flex ] ;
+	YACC = [ FDirName $(TOP) build_system windows bison ] -d -v -y ;
+}
+else
+{
+	LEX = flex ;
+	YACC = bison -d -v -y ;
+}
+
+YACCGEN = .c ;
+YACCFILES = y.tab ;
+KEEPOBJS = false ;
+
+local PRV_LIB_DIR = [ FDirName $(BUILD_DIR) private libraries libbinder_bootstrap ] ;
+local PRV_OBJ_DIR = [ FDirName $(BUILD_DIR) private obj pidgen ] ;
+local MSVCNT_SDK = [ FDirName $(MSVCNT) PlatformSDK lib ] ;
+
+# Bootstrap
+local STDHDRS = ;
+
+if $(NT)
+{
+	SUBDIRHDRS += [ FDirName $(TOP) headers windows ] ;
+}
+else
+{
+	SUBDIRHDRS += [ FDirName usr include ] ;
+}
+
+SUBDIRHDRS += [ FDirName $(TOP) headers PDK ] ;
+SUBDIRHDRS += [ FDirName $(TOP) headers SDK ] ;
+SUBDIRHDRS += [ FDirName $(TOP) libraries SystemLib libc include ] ;
+SUBDIRHDRS += [ FDirName $(TOP) headers private ] ;
+
+# Find sources here
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder support ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder storage ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder xml ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder package ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libinterface render ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries SystemLib libc palmsource ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder arch x86 ] ;
+
+# Define local sources
+local sources =
+	idlstruct.cpp
+	InterfaceRec.cpp
+	AST.cpp
+	main.cpp
+	OutputCPP.cpp
+	OutputI.cpp
+	OutputUtil.cpp
+	symbol.cpp
+	symbolstack.cpp
+	TypeBank.cpp
+	yacc.y
+	scanner.l
+	WSDL.cpp
+	WsdlOutput.cpp
+	atomic.c
+	;
+
+local bootstrapSources =
+	Atom.cpp
+	Autobinder.cpp
+	Binder.cpp
+	Bitfield.cpp
+	ByteStream.cpp
+	CallStack.cpp
+	Context.cpp
+	Debug.cpp
+	DebugLock.cpp
+	DebugStream.cpp
+	Flattenable.cpp
+	KernelStreams.cpp
+	List.cpp
+	Locker.cpp
+	MemoryStore.cpp
+	NullStreams.cpp
+	SortedVector.cpp
+	Parcel.cpp
+	#RBinder.cpp
+	SharedBuffer.cpp
+	Static.cpp
+	TextCoder.cpp
+	Storage.cpp	
+	String.cpp
+	StringIO.cpp
+	SupportUtils.cpp
+	Swap.cpp
+	TextStream.cpp
+	Value.cpp
+	ValueMap.cpp
+	Vector.cpp
+	VectorIO.cpp
+	BufferSource.cpp
+	Creator.cpp
+	DataSource.cpp
+	ParseContext.cpp
+	ParseXML.cpp
+	StringUtils.cpp
+	Value2XML.cpp
+	Writer.cpp
+	XML2ValueParser.cpp
+	XMLIByteInputSource.cpp
+	XMLOStr.cpp
+	XMLParser.cpp
+	XMLWriter.cpp
+	XMLParserCore.cpp
+	File.cpp
+	getopt.c
+	Color.cpp
+	Insets.cpp
+	Rect.cpp
+	Threads.cpp
+		SysThread.cpp
+		qsort_r.c
+		SysSemaphores.cpp
+		TSD.cpp
+		strlcat.c
+		strlcpy.c
+		timers.cpp
+		atomic.c
+	;
+
+if $(NT)
+{
+	PLATFORM_DIR = windows ;
+
+	# add platfrom specific files
+	bootstrapSources += WindowsCompatibility.cpp ;
+	
+	SubDirC++Flags
+		/D WIN32
+		/D TARGET_HOST=TARGET_HOST_WIN32
+		/D BUILD_TYPE=BUILD_TYPE_DEBUG
+		/D SUPPORTS_CALL_STACK=1
+		/D _BUILDING_SUPPORT=1
+		/D VALIDATES_REGION=0
+		/D VALIDATES_VALUE=0
+		/D SUPPORTS_LOCK_DEBUG=1
+		/D SUPPORTS_ATOM_DEBUG=1
+		/D SUPPORTS_TEXT_STREAM=1
+		/D LIBBE_BOOTSTRAP=1
+		/D _SUPPORTS_NAMESPACE=0
+		/D SUPPORTS_WINDOWS_FILE_PATH=1
+		/GR
+		;
+
+	# To debug ... uncomment the following two lines
+	#SUBDIRCCFLAGS += /Z7 ;
+	#C++FLAGS += /Z7 ;
+
+	# treat these files as C++
+	CCFLAGS on yacc.obj += /TP ;
+	CCFLAGS on scanner.obj += /TP ;
+
+	SUFLIB = .lib ;
+	SUFOBJ = .obj ;
+
+	# to debug add the following to LINKFLAGS
+	# /DEBUG /PDB:"$(TOP)/tools/PDK/windows/pidgen.pdb" 
+	LINKLIBS on pidgen.exe += Dbghelp.lib User32.lib ;
+	LINKFLAGS on pidgen.exe +=
+		/libpath:$(MSVCNT_SDK)
+		/incremental:no
+		/machine:IX86
+		;
+}
+else
+{
+	# to debug add the following flags: -g -O0
+	SubDirC++Flags
+		-DBUILD_TYPE=BUILD_TYPE_DEBUG
+		-DLINUX_DEMO_HACK=1
+		-DSUPPORTS_CALL_STACK=1
+		-D_BUILDING_SUPPORT=1
+		-DVALIDATES_REGION=0
+		-DVALIDATES_VALUE=0
+		-DSUPPORTS_LOCK_DEBUG=1
+		-DSUPPORTS_ATOM_DEBUG=1
+		-DSUPPORTS_TEXT_STREAM=1
+		-DLIBBE_BOOTSTRAP=1
+		-D_SUPPORTS_NAMESPACE=0
+		-DSUPPORTS_UNIX_FILE_PATH=1
+		-Wno-multichar
+		-g -O0
+		;
+
+	if $(MAC)
+	{
+		# add platfrom specific files
+		bootstrapSources += MacOSCompat.cpp ;
+		
+		PLATFORM_DIR = macos ;
+		SubDirC++Flags 
+			-DMACOS
+			-DTARGET_HOST=TARGET_HOST_MACOS
+			;
+	}
+	else
+	{
+		# add platfrom specific files
+		bootstrapSources += LinuxCompat.cpp ;
+		
+		PLATFORM_DIR = linux ;
+		SubDirC++Flags 
+			-DLINUX
+			-DTARGET_HOST=TARGET_HOST_LINUX
+			-DTARGET_PLATFORM=TARGET_PLATFORM_PALMSIM_LINUX
+			;
+	}
+
+	# treat these files as C++
+	CCFLAGS on yacc.o += -x c++ ;
+	CCFLAGS on scanner.o += -x c++ ;
+
+	SUFLIB = .a ;
+	SUFOBJ = .o ;
+	LINKFLAGS += -g -ldl ;
+	LINKLIBS on pidgen$(SUFEXE) =
+		/usr/lib/libc.so
+		/usr/lib/librt.so
+		/usr/lib/libstdc++.so
+		/usr/lib/libpthread.so
+		;
+}
+
+SUBDIRCCFLAGS += $(SUBDIRC++FLAGS) ;
+
+# Build libbinder_bootstrap$(SUFLIB)
+Objects $(bootstrapSources) ;
+LibraryFromObjects libbinder_bootstrap$(SUFLIB) : $(bootstrapSources:S=$(SUFOBJ)) ;
+
+Depends libbinder_bootstrap$(SUFLIB) : $(bootstrapSources:S=$(SUFOBJ)) ;
+MakeLocate $(bootstrapSources:S=$(SUFOBJ)) : $(PRV_OBJ_DIR) ;
+MakeLocate libbinder_bootstrap$(SUFLIB) : $(PRV_LIB_DIR) ;
+
+#Clean clean : libbootstrap.tmp ;
+#SEARCH on libbootstrap.tmp = $(PRV_LIB_DIR) ;
+
+Main pidgen$(SUFEXE) : $(sources) ;
+MakeLocate pidgen$(SUFEXE) : [ FDirName $(TOP) tools PDK $(PLATFORM_DIR) ] ;
+MakeLocate $(sources:S=$(SUFOBJ)) : $(PRV_OBJ_DIR) ;
+LinkLibraries pidgen$(SUFEXE) : libbinder_bootstrap$(SUFLIB) ;
+

@@ -1,0 +1,27 @@
+###############################################################################
+#
+# Copyright (c) 2001-2002 PalmSource, Inc. or its subsidiaries.
+# All rights reserved.
+#
+# File: Jamfile
+#
+###############################################################################
+
+# Jamfile to build settings
+PSSubDir TOP components services settings ;
+
+# Define local sources
+local sources =
+	SettingsCatalog.cpp
+	main.cpp
+	Legacy.cpp
+	;
+
+# Set local vars
+local PKGNAME = org.openbinder.services.Settings ;
+
+# Build the component
+Component Settings :
+	$(sources)
+	;
+

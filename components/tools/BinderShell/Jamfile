@@ -1,0 +1,32 @@
+###############################################################################
+#
+# Copyright (c) 2001-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+# Jamfile to build BinderShell
+PSSubDir TOP components tools BinderShell ;
+
+# Define local sources
+local sources =
+	BinderCommands.cpp
+	bsh.cpp
+	CV.cpp
+	Parser.cpp
+	SyntaxTree.cpp
+	Test.cpp
+	vm.cpp
+	;
+	
+# Set local vars
+local PKGNAME = org.openbinder.tools.BinderShell ;
+
+# Build the component
+Component BinderShell :
+	$(sources)
+	;
+

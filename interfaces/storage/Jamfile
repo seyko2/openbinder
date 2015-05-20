@@ -1,0 +1,23 @@
+###############################################################################
+#
+# Copyright (c) 2002-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+# Jamfile to build support interface files
+if ! $(PALMSOURCE_DEV_KIT) {
+	PSSubDir TOP interfaces PDK storage ;
+} else {
+	PSSubDir TOP PDK interfaces storage ;
+}
+
+InterfaceIdl IReferable.cpp : IReferable.idl : libbinder ;
+
+# Build the deliverables
+if ! $(PALMSOURCE_DEV_KIT) {
+	PdkFile Jamfile [ Glob $(SUBDIR) : *.idl ] ;
+}

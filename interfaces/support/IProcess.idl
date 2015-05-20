@@ -1,0 +1,85 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+/*!	@file support/IProcess.idl
+	@ingroup CoreSupportBinder
+
+	@brief Interface to an operating system process.
+*/
+
+namespace palmos {
+namespace support {
+
+interface INode
+
+//!	Interface to an operating system process.
+/*!	Clients will not normally use this interface directly,
+	instead using it with other APIs such as
+	SContext::NewProcess() and SContext::RemoteNew().  See
+	@ref BinderProcessModel for more information.
+	
+	@ingroup CoreSupportBinder
+*/
+interface IProcess
+{
+
+//using namespace palmos::support;
+
+methods:
+
+	//! Create a new component in this team, and return a pointer to it.
+	/*!	@param[in]	ctx			Context for this component to run in.
+		@param[in]	componentInfo	Information from package manager.
+		@param[in]	component	Name of the component in its addon (passed to
+								SSharedObject::InstantiateComponent().)
+		@param[in]	args		Arguments to component constructor.
+		@param[out]	outError	Error code.
+		@result Returns a new instances of the component, or NULL if there was
+		an error.
+		@note The normal way to instantiate components is with the
+		SContext::RemoteNew() method, retrieved through your BBinder::Context().
+	*/
+	IBinder				InstantiateComponent(	INode ctx,
+												SValue componentInfo,
+												SString component,
+												SValue args,
+												[optional out]status_t outError);
+
+	//! SAtom debugging hooks.
+	/*!	Only implemented on debug builds.  You must also enable atom debugging.
+		Flags are defined in support/Atom.h. */
+	int32_t				AtomMarkLeakReport();
+	void				AtomLeakReport(int32_t mark, int32_t last, uint32_t flags);
+
+	//! Binder debugging hook.  Only implemented on debug builds.
+	void				PrintBinderReferences();
+
+	//! Clear all malloc() profiling statistics that have been collected in this team.
+	/*!	(Call DbgResetMallocProfiling() in the target process.) */
+	void				RestartMallocProfiling();
+	void				SetMallocProfiling(bool enabled, int32_t dumpPeriod, int32_t maxItems, int32_t stackDepth);
+
+	//! Clear all SVector profiling statistics that have been collected in this team
+	void				RestartVectorProfiling();
+	void				SetVectorProfiling(bool enabled, int32_t dumpPeriod, int32_t maxItems, int32_t stackDepth);
+
+	//! Clear all message IPC profiling statistics that have been collected in this team
+	void				RestartMessageIPCProfiling();
+	void				SetMessageIPCProfiling(bool enabled, int32_t dumpPeriod, int32_t maxItems, int32_t stackDepth);
+
+	//! Clear all binder IPC profiling statistics that have been collected in this team
+	void				RestartBinderIPCProfiling();
+	void				SetBinderIPCProfiling(bool enabled, int32_t dumpPeriod, int32_t maxItems, int32_t stackDepth);
+	void				PrintBinderIPCProfiling();
+}
+
+} }	// namespace palmos::support

@@ -1,0 +1,20 @@
+###############################################################################
+#
+# Copyright (c) 2002-2003 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.0
+#
+###############################################################################
+
+# Jamfile to build libbinder_component_glue library
+PSSubDir TOP libraries libbinder_component_glue ;
+
+SubDirHdrs TOP libraries libbinder_glue ;
+
+# Build the static lib
+Library libbinder_component_glue : binder_component_glue.cpp ;
+
+MakeLocate libbinder_component_glue$(SUFLIB) : $(LIB_DIR) ;
+

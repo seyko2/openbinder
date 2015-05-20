@@ -1,0 +1,38 @@
+# This is a Binder Shell script that implements
+# a Binder component.
+
+# We will be implementing the ISampleService
+# interface that is defined in SampleService/ISampleService.idl.
+# Setting this environment variable tells the BinderShell
+# VM which interfaces the script is implementing (set it to
+# a "set" if you are implementing more than one).
+
+INTERFACE=org.openbinder.samples.ISampleService
+
+# By default others are allowed direct access to
+# our properties.  Implementing these two methods allows
+# us complete control over what external clients can see.
+
+function __get__() {
+	return @{undef}
+}
+
+function __set__() {
+	return @{undef}
+}
+
+# This is a global variable containing our state.
+# Use the "start" argument, if it was supplied.
+
+if [ "$start" = "" ]; then
+	gIndex=20
+else
+	gIndex=$start
+fi
+
+# Implement the ISampleService::Test() method.
+
+function Test() {
+	gIndex=$((gIndex+100))
+	return $gIndex
+}

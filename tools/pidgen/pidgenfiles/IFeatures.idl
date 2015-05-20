@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+namespace palmos {
+namespace support {
+
+// Note that the idl compiler currently doesn't support output parameters,
+// so we need to tweak the API a bit by returning BValue objects where we
+// need multiple results.  This will change once the idl compiler improves.
+
+// Supply C++-language specific information for this interface.
+interface IFeatures
+{
+	methods:
+		status_t	SetFeature(uint32 creator, uint32 featureNum, uint32 value);
+		BValue		GetFeature(uint32 creator, uint32 featureNum);
+		// Will be: status_t	GetFeature(uint32 creator, uint32 featureNum, [out] uint32 out_value);
+		status_t	UnregisterFeature(uint32 creator, uint32 featureNum);
+
+		// Return value contains mappings: "creator", "number", "value"
+		BValue		GetFeatureAt(uint32 index, bool romTable);
+		// Will be: status_t	GetFeatureAt(uint32 index, bool romTable, [out] uint32 out_creator,
+		//									 [out] uint32 out_featureNum, [out] uint32 out_value);
+
+		BValue		NewPointer(uint32 creator, uint32 featureNum, size_t size);
+		// Will be: status_t	NewPointer(uint32 creator, uint32 featureNum,
+		//								   size_t size, [out] void* out_ptr);
+		status_t	FreePointer(uint32 creator, uint32 featureNum);
+		BValue		ResizePointer(uint32 creator, uint32 featureNum, size_t size);
+		// Will be: status_t	ResizePointer(uint32 creator, uint32 featureNum,
+		//									  size_t size, [out] void* out_ptr);
+}
+
+} }	// namespace palmos::support

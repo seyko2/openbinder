@@ -1,0 +1,180 @@
+###############################################################################
+#
+# Copyright (c) 2003-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+###############################################################################
+
+# Jamfile to build pidgen
+
+# NOTE: Do not include SubDir or PSSubDir. This build does not need or want
+# the project rules file read in -- it relies solely on standard Jambase.
+
+# Set build output dir
+if $(BUILD_DIR) {
+	BUILD_DIR = $(BUILD_DIR:R=$(TOP)) ;
+} else {
+	BUILD_DIR = [ FDirName $(TOP) build ] ;
+}
+
+NEWLINE = "
+" ;
+
+C++  = g++ ;
+CC   = gcc ;
+LINK = g++ ;
+
+local PRV_LIB_DIR = [ FDirName $(BUILD_DIR) private libraries libbinder_bootstrap ] ;
+local PRV_OBJ_DIR = [ FDirName $(BUILD_DIR) private obj makestrings ] ;
+
+# Bootstrap
+local STDHDRS = ;
+SUBDIRHDRS += [ FDirName usr include ] ;
+SUBDIRHDRS += [ FDirName $(TOP) headers PDK ] ;
+SUBDIRHDRS += [ FDirName $(TOP) headers SDK ] ;
+SUBDIRHDRS += [ FDirName $(TOP) libraries SystemLib libc include ] ;
+SUBDIRHDRS += [ FDirName $(TOP) headers private ] ;
+
+# Find sources here
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder support ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder storage ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder xml ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder package ] ;
+SEARCH_SOURCE += [ FDirName $(TOP) libraries libbinder arch x86 ] ;
+
+# Define local sources
+local sources =
+	Strings.cpp
+	;
+
+local bootstrapSources =
+	Atom.cpp
+	Autobinder.cpp
+	Binder.cpp
+	Bitfield.cpp
+	ByteStream.cpp
+	CallStack.cpp
+	Context.cpp
+	Debug.cpp
+	DebugLock.cpp
+	Flattenable.cpp
+	KernelStreams.cpp
+	List.cpp
+	Locker.cpp
+	MemoryStore.cpp
+	NullStreams.cpp
+	SortedVector.cpp
+	Parcel.cpp
+	#RBinder.cpp
+	SharedBuffer.cpp
+	Static.cpp
+	TextCoder.cpp
+	Storage.cpp	
+	String.cpp
+	StringIO.cpp
+	SupportUtils.cpp
+	Swap.cpp
+	TextStream.cpp
+	Value.cpp
+	ValueMap.cpp
+	Vector.cpp
+	VectorIO.cpp
+	BufferSource.cpp
+	Creator.cpp
+	DataSource.cpp
+	ParseContext.cpp
+	ParseXML.cpp
+	StringUtils.cpp
+	Value2XML.cpp
+	Writer.cpp
+	XML2ValueParser.cpp
+	XMLIByteInputSource.cpp
+	XMLOStr.cpp
+	XMLParser.cpp
+	XMLWriter.cpp
+	XMLParserCore.cpp
+	File.cpp
+	Threads.cpp
+		SysThread.cpp
+		qsort_r.c
+		SysSemaphores.cpp
+		TSD.cpp
+		strlcat.c
+		strlcpy.c
+		timers.cpp
+		atomic.c
+	;
+
+	# to debug add the following flags: -g -O0
+	SubDirC++Flags
+		-DBUILD_TYPE=BUILD_TYPE_DEBUG
+		-DLINUX_DEMO_HACK=1
+		-DSUPPORTS_CALL_STACK=1
+		-D_BUILDING_SUPPORT=1
+		-DVALIDATES_REGION=0
+		-DVALIDATES_VALUE=0
+		-DSUPPORTS_LOCK_DEBUG=1
+		-DSUPPORTS_ATOM_DEBUG=1
+		-DSUPPORTS_TEXT_STREAM=1
+		-DLIBBE_BOOTSTRAP=1
+		-D_SUPPORTS_NAMESPACE=0
+		-DSUPPORTS_UNIX_FILE_PATH=1
+		-Wno-multichar
+		-g -O0
+		;
+
+	if $(MAC)
+	{
+		# add platfrom specific files
+		bootstrapSources += MacOSCompat.cpp ;
+		
+		PLATFORM_DIR = macos ;
+		SubDirC++Flags 
+			-DMACOS
+			-DTARGET_HOST=TARGET_HOST_MACOS
+			;
+	}
+	else
+	{
+		# add platfrom specific files
+		bootstrapSources += LinuxCompat.cpp ;
+		
+		PLATFORM_DIR = linux ;
+		SubDirC++Flags 
+			-DLINUX
+			-DTARGET_HOST=TARGET_HOST_LINUX
+			-DTARGET_PLATFORM=TARGET_PLATFORM_PALMSIM_LINUX
+			;
+	}
+
+	# treat these files as C++
+	CCFLAGS on yacc.o += -x c++ ;
+	CCFLAGS on scanner.o += -x c++ ;
+
+	SUFLIB = .a ;
+	SUFOBJ = .o ;
+	LINKFLAGS += -g -ldl -lpthread -lrt ;
+	LINKLIBS on pidgen$(SUFEXE) =
+		/usr/lib/libc.so
+		/usr/lib/librt.so
+		/usr/lib/libstdc++.so
+		/usr/lib/libpthread.so
+		;
+
+SUBDIRCCFLAGS += $(SUBDIRC++FLAGS) ;
+
+# Build libbinder_bootstrap$(SUFLIB)
+Objects $(bootstrapSources) ;
+LibraryFromObjects libbinder_bootstrap$(SUFLIB) : $(bootstrapSources:S=$(SUFOBJ)) ;
+
+Depends libbinder_bootstrap$(SUFLIB) : $(bootstrapSources:S=$(SUFOBJ)) ;
+MakeLocate $(bootstrapSources:S=$(SUFOBJ)) : $(PRV_OBJ_DIR) ;
+MakeLocate libbinder_bootstrap$(SUFLIB) : $(PRV_LIB_DIR) ;
+
+
+Main makestrings$(SUFEXE) : $(sources) ;
+MakeLocate makestrings$(SUFEXE) : [ FDirName $(TOP) tools PDK $(PLATFORM_DIR) ] ;
+MakeLocate $(sources:S=$(SUFOBJ)) : $(PRV_OBJ_DIR) ;
+LinkLibraries makestrings$(SUFEXE) : libbinder_bootstrap$(SUFLIB) ;
+

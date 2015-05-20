@@ -1,0 +1,107 @@
+###############################################################################
+#
+# Copyright (c) 2002-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+supportSources =
+		Atom.cpp
+		Autobinder.cpp
+		Binder.cpp
+		Bitfield.cpp
+		ByteStream.cpp
+		CallStack.cpp
+		ConditionVariable.cpp
+		Context.cpp
+		Datum.cpp
+		DatumLord.cpp
+		Debug.cpp
+		DebugLock.cpp
+		EventFlag.cpp
+		Flattenable.cpp
+		GenericCache.cpp
+		Handler.cpp
+		HashTable.cpp
+		IntrusiveProfiler.cpp
+		IDatum.cpp
+		IIterable.cpp
+		IIterator.cpp
+		INib.cpp
+		IProcess.cpp
+		IProcessManager.cpp
+		IRandomIterator.cpp
+		IOSStream.cpp
+		ISelector.cpp
+		ITable.cpp
+		IVirtualMachine.cpp
+		Iterator.cpp
+		KeyID.cpp
+		List.cpp
+		Locker.cpp
+		Looper.cpp
+		LooperLinux.cpp
+		Memory.cpp
+		MemoryStore.cpp
+		Message.cpp
+		MessageList.cpp
+		Node.cpp
+		NullStreams.cpp
+		Observer.cpp
+		Package.cpp
+		Parcel.cpp
+		Pipe.cpp
+		Process.cpp
+		ProfileIPC.cpp
+		RBinder.cpp
+		RegExp.cpp
+		#Sequence.cpp
+		Selector.cpp
+		SharedBuffer.cpp
+		SignalHandler.cpp
+		SortedVector.cpp
+		Static.cpp
+		Storage.cpp
+		StopWatch.cpp
+		String.cpp
+		StringIO.cpp
+		StringTokenizer.cpp
+		SupportUtils.cpp
+		Swap.cpp
+		TextCoder.cpp
+		TextStream.cpp
+		Thread.cpp
+		Threads.cpp
+		TokenSource.cpp
+		URL.cpp
+		Value.cpp
+		ValueMap.cpp
+		Vector.cpp
+		VectorIO.cpp
+		CatalogMirror.cpp
+		ICatalogPermissions.cpp
+		Catalog.cpp
+		ICatalog.cpp
+		INodeObserver.cpp
+		INode.cpp
+		IUuid.cpp
+		#ContentProvider.cpp
+		LinuxCompat.cpp
+		KernelStreams.cpp
+		qsort_r.c
+		SysSemaphores.cpp
+		TSD.cpp
+		strlcat.c
+		strlcpy.c
+		timers.cpp
+		;
+
+# Special code for ARM performance tests.
+if $(TOOLSUITE) != MSVCNT && $(TOOLSUITE) != GCC
+{
+	supportSources += PerformanceCounter_A.s ;
+}
+

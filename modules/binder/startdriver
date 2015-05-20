@@ -1,0 +1,5 @@
+# you almost certainly want to run this with sudo
+depmod
+modprobe binderdev
+echo lsmod | grep binder
+lsmod | grep binder

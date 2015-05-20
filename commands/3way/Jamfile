@@ -1,0 +1,21 @@
+###############################################################################
+#
+# Copyright (c) 2001-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+PSSubDir TOP components tests 3way ;
+
+# make the bomber command
+Main 3way :
+	3way.cpp
+	;
+LinkLibraries 3way : 
+	libbinder$(SUFSHL)
+	libbinder_glue$(SUFLIB)
+	;
+

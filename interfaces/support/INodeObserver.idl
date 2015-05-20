@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+/*!	@file support/INodeObserver.idl
+	@ingroup CoreSupportDataModel
+
+	@brief Convenience for linking to INode events.
+*/
+
+import <support/INode.idl>
+
+namespace palmos {
+namespace support {
+
+//!	Convenience for linking to INode events.
+/*! @ingroup CoreSupportDataModel */
+interface INodeObserver
+{
+methods:
+	//!	See INode::NodeChanged.
+	void NodeChanged(INode who, uint32_t flags, SValue hints);
+
+	//!	See INode::EntryCreated.
+	void EntryCreated(INode node, SString name, IBinder entry);
+
+	//!	See INode::EntryModified.
+	void EntryModified(INode node, SString name, IBinder entry);
+	
+	//!	See INode::EntryRemoved.
+	void EntryRemoved(INode node, SString name);
+
+	//!	See INode::EntryRenamed.
+	void EntryRenamed(INode node, SString old_name, SString new_name, IBinder entry);
+}
+
+
+} }	// namespace palmos::support

@@ -1,0 +1,9 @@
+to build pidgen, use jam -q pidgen.exe.  
+
+the bison and flex files should be generated and renamed automatically via the Jamfile  
+if using the bison and flex binaries checked into build_system doesn't work(most likely because you're using a different cygwin runtime from
+the one these exes require), you can use LEX = flex ; YACC = bison -d -v -y ; to invoke the flex and bison resident on your machine.  there might
+be some minor problems such as bison complaining about yylex not taking 0 parameters - this is a known problem on old versions of cygwin bison,
+just feed it the params it's supposed to get and all should be well.
+
+for rolling pidgen jam help pls see Diane Holt

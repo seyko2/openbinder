@@ -1,0 +1,42 @@
+###############################################################################
+#
+# Copyright (c) 2001-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+# Jamfile to build atom
+PSSubDir TOP components tools commands atom ;
+
+# Define local sources
+local sources =
+	Atom.cpp
+	;
+
+# Sign the PRC
+SignedPrc atom.prc ;
+
+# Build the PRC
+local ENTRY = ComponentLibMain ;
+local PRCCREATOR = atom ;
+local PRCTYPE = libr ;
+PDBNAME on atom.prc = atom ;
+
+Prc atom.prc :
+	$(sources)
+	atom.xrd
+
+	SystemGlue$(SUFLIB)
+
+	DALLib$(SUFSTUB)
+	SystemLib$(SUFSTUB)
+	libbinder$(SUFSTUB)
+	;
+
+
+
+# Package org.openbinder.tools.commands.Atom :
+#	;

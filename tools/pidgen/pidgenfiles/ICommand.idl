@@ -1,0 +1,40 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+namespace palmos {
+namespace support {
+
+import <IByteStream.idl>
+
+} }	// namespace palmos::support
+
+namespace palmos {
+namespace app {
+
+interface ICommand
+{
+methods:
+	BValue Run([in]BValue args);
+	ICommand Spawn([inout]BString command);
+	void SetProperty([out]BValue key, [inout]BValue value);
+	BValue GetProperty(BValue key);
+
+	void SetEnvironment(BValue env);
+	void SetFileDescriptors(BValue fds);
+	
+properties:
+	IByteInput	ByteInput;
+	IByteOutput	ByteOutput;
+	IByteOutput	ByteError;
+}
+
+} }	// namespace palmos::app

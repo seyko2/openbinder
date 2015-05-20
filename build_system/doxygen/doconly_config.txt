@@ -1,0 +1,8 @@
+# Changes to base_config.txt so that only documented objects
+# are included.
+
+EXTRACT_ALL            = NO
+
+HIDE_UNDOC_MEMBERS     = NO
+
+HIDE_UNDOC_CLASSES     = YES

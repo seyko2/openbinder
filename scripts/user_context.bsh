@@ -1,0 +1,51 @@
+# This script uses the CatalogMirror component to
+# build a "user context".  This is a context (namespace)
+# that we will give to user-level components, which
+# is a proxy for the default (system) context but has
+# restrictions such as not being able to modify /services.
+
+userRoot=$[new --context $CONTEXT org.openbinder.kits.support.CatalogMirror @{ "catalog"->$[lookup /] }]
+put $userRoot writable @{false}
+# Publish the directory mirror itself in /contexts/user
+publish /contexts/user $userRoot
+# Now set our user context for all others to use (since we are in system process)
+context --set $userRoot user
+# Notice that NEW_CONTEXT will now be the default context for all new commands
+# ...unless the system context (in the bootscript that is $CONTEXT) is used explicity
+NEW_CONTEXT=$userRoot
+
+# (after user context is set up...)
+# add the services directory so we can set it up in the user context
+mkdir /services
+
+# Set up a mirror services directory - overlay surface and hide wmview
+userServices=$[new --context $CONTEXT org.openbinder.kits.support.CatalogMirror @{ "catalog_path"->"/services" }]
+put $userServices writable @{false}
+servicesDir=$[inspect $userServices org.openbinder.support.ICatalog]
+invoke $userRoot OverlayEntry "services" $servicesDir
+invoke $userServices HideEntry "wmview"
+
+# Set up a mirror contexts directory - overlay user
+publish /contexts/system @{(wptr)$CONTEXT}
+userContexts=$[new --context $CONTEXT org.openbinder.kits.support.CatalogMirror @{ "catalog_path"->"/contexts" }]
+put $userContexts writable @{false}
+contextsDir=$[inspect $userContexts org.openbinder.support.ICatalog]
+invoke $userRoot OverlayEntry "contexts" $contextsDir
+invoke $userContexts OverlayEntry "user" @{(wptr)$[inspect $userRoot org.openbinder.support.ICatalog]}
+invoke $userContexts HideEntry "system"
+
+# Publish the system process in the context.  Don't allow
+# the user context to access it.
+publish /processes/system @{(wptr)$PROCESS}
+userProcesses=$[new --context $CONTEXT org.openbinder.kits.support.CatalogMirror @{ "catalog_path"->"/processes" }]
+# Note that we ARE allowing publishing from the user context
+# in to this directory.  This maybe is not completely correct,
+# but currently we need it for the background process to be
+# able to publish itself.
+processesDir=$[inspect $userProcesses org.openbinder.support.ICatalog]
+invoke $userRoot OverlayEntry "processes" $processesDir
+invoke $userProcesses HideEntry "system"
+
+# Debugging help...
+publish /who_am_i "System Context"
+invoke $userRoot OverlayEntry "who_am_i" "User Context"

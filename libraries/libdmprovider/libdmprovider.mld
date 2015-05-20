@@ -1,0 +1,35 @@
+# By convention, class method names that begin with
+# a lower-case letter are generally private, so we don't
+# normally export them.
+set methodfilter=[^a-z].*
+
+set namespace=palmos::dmprovider
+
+set class=BSchemaDatabaseNode
+	export all
+	hide function Context
+
+set class=BSchemaRowIDJoin
+	export all
+	hide function Context
+set class=BSchemaRowIDJoin::RowNode
+	export all
+	hide function Context
+set class=BSchemaRowIDJoin::JoinIterator
+	export all
+	
+set class=BSchemaTableNode
+	export all
+	hide function Context
+set class=BSchemaTableNode::CustomColumn
+	export all
+	hide function Table
+set class=BSchemaTableNode::DataAccessor
+	export all
+	hide function Table
+set class=BSchemaTableNode::RowNode
+	export all
+	hide function Context
+set class=BSchemaTableNode::QueryIterator
+	export all
+	

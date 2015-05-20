@@ -1,0 +1,28 @@
+###############################################################################
+#
+# Copyright (c) 2001-2003 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.0
+#
+###############################################################################
+
+# Jamfile to build MemoryDealer
+PSSubDir TOP components services MemoryDealer ;
+
+# Define local sources
+local sources =
+	main.cpp
+	Heap.cpp
+	;
+
+# Set local vars
+local PKGNAME = org.openbinder.services.MemoryDealer ;
+
+# Build the component
+Component MemoryDealer : $(sources) ;
+
+SetPkgLinkFlags MemoryDealer : -lpthread -lrt ;
+
+

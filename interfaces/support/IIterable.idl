@@ -1,0 +1,105 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+/*!	@file support/IIterable.idl
+	@ingroup CoreSupportDataModel
+
+	@brief Interface for object that provide iteration.
+*/
+
+import <support/IIterator.idl>
+
+namespace palmos {
+namespace support {
+
+//!	Interface implemented by objects that support iteration over their data.
+/*!	The IIterable interface is a factory for generating iterators over a
+	particular point in the @ref BinderDataModel.  This allows you to discover what data
+	is available at that point in a namespace.
+
+	Clients will usually use the SIterator convenience
+	class instead of making direct calls on an IIterable/IIterator.  Implementations
+	should never directly implement IIterable, instead deriving from BGenericIterable
+	or one of its subclasses.
+
+	Note that iterators are not recursive. That is, they return to you all
+	of the immediate children of the object you are iterating over. If you
+	want to recursively iterate through the contents of those children, you
+	will need to call Iterate() on each of the objects you retrieve from
+	the original iterator.
+
+	@ingroup CoreSupportDataModel
+*/
+interface IIterable
+{
+methods:
+	//!	Generate a @e new iterator for this iterable.
+	//!	Walk through the namespace based on the given path.
+	/*!	@param[in] args Iterator options as described below.
+		@param[out] error Status code from the call, B_OK if
+			all is well else an error code.
+		@return The new IIterator object on success, else NULL.
+
+		The returned iterator has its own state, so you do not have to worry about
+		other threads that may call Iterate() (they will get their own iterator).
+		Most implementations will return a full IRandomIterator; use
+		interface_cast<T> to retrieve that interface.
+
+		Clients should usually use SIterator instead of calling NewIterator()
+		directly.
+
+		The @a options parameter is used to control what data is returned by the
+		iterator.  The available options are fairly implementation-dependent, but
+		some common ones are described here.  Because you can not know what any
+		given IIterable object will be able to do, the IIterator interface you
+		get back has a read-only options property with which you can find out how
+		it is configured.  Any of the options supplied to IIterate() that it
+		understands will be propagated to the options property in the form it
+		understood them.
+
+		- "select" (a.k.a. BV_ITERABLE_SELECT) specifies a SQL projection,
+		  describing the columns to be included in the iterator results.
+		  It is a set of column names to include.
+	    - "filter" (a.k.a. BV_ITERABLE_FILTER) specifies an abstract filter
+		  (as a string) to be applied to the results, interpret in whatever
+		  way the IIterable thinks makes the most sense.
+	    - "where" (a.k.a. BV_ITERABLE_WHERE) specifies a direct SQL WHERE clause,
+		  allowing you to filter the results contained in the iterator.
+		  This can be used with "filter" at the same time, in which case the
+		  result set will be the rows matching both of them.
+	    - "order_by" (a.k.a. BV_ITERABLE_ORDER_BY) specifies how to order
+		  entries returned by the iterator.
+		
+		See @ref BinderDataModel for more detail on these options.
+
+		@par Implementation Details
+		Note that semantically each iterator you generate is passive for the
+		set of entries, but the data inside each of those entries may change.
+		That is, if the contents of the container changes, this will not
+		impact the number of entries in any current active iterators.  However,
+		if the data inside one of those entries changes, then the next time
+		any iterator requests the data for that entry it will get back the
+		new data.  If an entry is removed from the iterable, again the number
+		of items in currently active iterators does not change; however, if
+		that item is requested, both the key and value are returned with
+		B_NULL_VALUE.
+		@par
+		This requirement in place so that an iterator's results can be
+		reasonably thread-safe.  For example, if a list view gets an IRandomIterator
+		to display an IIterable's contents, it can rely on the indices of
+		that iterator being consistently mapped to the same entry in the
+		iterable.
+	*/
+	IIterator NewIterator([optional]SValue args, [optional out]status_t error);
+}
+
+} }	// namespace palmos::support

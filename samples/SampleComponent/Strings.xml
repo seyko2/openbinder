@@ -1,0 +1,19 @@
+<strings>
+	<string>
+		<key>world</key>
+		<value locale="enUS">World</value>
+		<value locale="frFR">I don't know French</value>
+	</string>	
+
+	<string>
+		<key>hello</key>
+		<value locale="enUS">says: Hello,</value>
+		<value locale="frFR">says: Hello,</value>
+	</string>	
+
+	<string>
+		<key>documentation</key>
+		<value locale="enUS">Sample component implementing a Binder shell command</value>
+		<value locale="frFR">Sample component implementing a Binder shell command</value>
+	</string>	
+</strings>

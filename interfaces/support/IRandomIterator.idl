@@ -1,0 +1,78 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+/*!	@file support/IRandomIterator.idl
+	@ingroup CoreSupportDataModel
+
+	@brief Extended IIterator interface that supports random access.
+*/
+
+import <support/IIterator.idl>
+
+namespace palmos {
+namespace support {
+
+//!	Extended IIterator interface that supports random access.
+/*!	This interface is an extension to IIterator that allows one
+	to perform random access on the contents of the iterator.
+	This is accomplished by introducing two properties, one holding
+	the total number of items and the other allowing you to set and get
+	the position (zero-based) in the iterator.
+
+	The position is always the next item that will be returned.
+	Thus if you set position to 0 and then call Next(), the results
+	you get back will start with the first item in the iterator.
+
+	@ingroup CoreSupportDataModel
+*/
+interface IRandomIterator : IIterator
+{
+properties:
+	//!	The total number of items available in the iterator.
+	[readonly]size_t	count;
+
+	//!	The current position in the iterator.
+	/*!	This is the index of the item that will be returned the
+		next time IIterator::Next() is called.  That is, semantically
+		the Next() operation returns the data at the current
+		location, and then increments the iterator to the next
+		location.
+		
+		To retrieve an item at a specific location, first set
+		position to the index of the desired item (range from 0
+		to count-1) and then call IIterator with count=1 to retrieve
+		only that item.
+		
+		Setting position to 0 will make the iterator restart back
+		at the beginning of its data. */
+	size_t				position;
+
+methods:
+	//! Removes the current element.
+	/*!	Iterators are not required to implement this, and can return
+		B_UNSUPPORTED in that case.  Note that this removes the item
+		at the \e current position, thus if you call Next() and then
+		Remove(), you will be removing the next item after the ones
+		you had just retrieved.
+	*/
+	status_t			Remove();
+	
+events:
+	//!	Pushed when the contents of an item in the iterator changes.
+	/*!	An iterator that supports COLLAPSE_NODE should push this when
+		any of the selected sub-data in one of its items have changed.
+		Otherwise, it will only be pushed when the top-level data
+		for an item has changed. */
+	void				IteratorDataChanged(IIterator it, size_t position, SValue key, SValue value);
+}
+
+} }	// namespace palmos::support

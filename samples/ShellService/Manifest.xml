@@ -1,0 +1,5 @@
+<manifest>
+	<component file="ShellService.bsh" vm="org.openbinder.tools.BinderShell.VM">
+		<interface name="org.openbinder.samples.ISampleService" />
+	</component>
+</manifest>

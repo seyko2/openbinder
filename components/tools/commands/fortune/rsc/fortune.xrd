@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<PALMOS_RESOURCE_FILE>
+
+	<RAW_RESOURCE RESOURCE_ID="1000">
+		<RES_TYPE> 'text' </RES_TYPE>
+		<DATA_FILE> "../fortunes/fortunes.txt" </DATA_FILE> </RAW_RESOURCE>
+
+</PALMOS_RESOURCE_FILE>
+

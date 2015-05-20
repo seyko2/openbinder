@@ -1,0 +1,35 @@
+###############################################################################
+#
+# Copyright (c) 2002-2003 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.0
+#
+###############################################################################
+
+storageSources =
+#		BDatabaseStore.cpp
+		CatalogDelegate.cpp
+		DatumGeneratorInt.cpp
+		File.cpp
+		GenericDatum.cpp
+		GenericIterable.cpp
+		GenericNode.cpp
+		IndexedDataNode.cpp
+		IndexedIterable.cpp
+		IndexedTableNode.cpp
+		IReferable.cpp
+		MetaDataNode.cpp
+		NodeDelegate.cpp
+#		SDatabase.cpp
+		StreamDatum.cpp
+		StructuredNode.cpp
+		ValueDatum.cpp
+		VFSFile.cpp
+		;
+
+#if $(COMPONENT_MODEL) = SharedLibs 
+#{
+#	supportSources += Static.cpp ;
+#}

@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+/*!	@file support/IReferable.idl
+	@ingroup CoreSupportDataModel
+
+	@brief Interface to discover full path to an object.
+*/
+
+namespace palmos {
+namespace storage {
+
+//!	Interface to find the unique name for an object in the namespace.
+/*!	Some objects in the @ref BinderDataModel are placed at well-known
+	locations in the SContext namespace.  These objects will implement
+	the IReferable interface, allowing you to retrieve the official
+	path to that object.
+
+	The main purpose of IReferable is to enable synchronization.  As
+	such, all significant objects under /content will implement the
+	interface (especially those representing first-level synchronization
+	entities, such as a person entry).  It is not expected to be
+	implemented by many other objects outside of that part of the namespace,
+	though they are free to do so as desired.
+
+	For synchronization purposes, the reference path to a particular piece
+	of data will generally include a GUID so that it is unique across all
+	devices.  For example, the reference for a particular person entry
+	may be "/content/pim/people/{GUID}".  The GUID is generated the first
+	time that particular person is created, and the same GUID remains
+	associated with it as it moves between devices.
+
+	@note Objects may be published at more than one place in the
+	namespace (corresponding to a Unix filesystem hard link), so the
+	path returned by this interface may be different than the path
+	through which you found the object.  Regardless, you are guaranteed
+	that walking the returned path will return you to the same object.
+
+	@ingroup CoreSupportDataModel
+*/
+interface IReferable
+{
+properties:
+	//!	Official path to this object.
+	/*!	This property holds the canonical path at which you can find
+		the object being queried.  The returned path is always of the
+		form "/some/path/to/me"; that is, SContext::Lookup() can be
+		used to resolve the path back to the object.
+
+		@note Currently SContext::Lookup() always uses IDatum::REQUEST_DATA,
+		so it will not work for retrieving IDatum objects.  This should
+		be fixed.
+	*/
+	[readonly]SString reference;
+}
+
+} }	// namespace palmos::storage
+
+

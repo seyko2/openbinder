@@ -1,0 +1,46 @@
+# This is an example Binder Shell boot script
+# for smooved, which starts up some standard
+# services.  You can try running it from the build
+# system with "make runshell"
+
+# Before we do anything else create and set our user context
+# so that we can create objects in the user context
+# rather than in the system context.
+# (The system context is initialized by smooved at startup.)
+
+source $BSH_SCRIPT_DIR/user_context.bsh
+
+# The following command instantiates the Settings component
+# and publishes it under "/settings".  This component
+# implements a hierarchical data structure that is backed by
+# a persistent XML file.
+
+new -p /settings org.openbinder.services.Settings
+
+# The following command instantiates the Informant component
+# and publishes it under "/services/informant".
+
+new -p /services/informant org.openbinder.services.base.Informant
+
+# The following command instantiates the TokenSource component
+# and publishes it under "/services/tokens".
+
+new -p /services/tokens org.openbinder.services.TokenSource
+
+# The following command instantiates the Memory Dealer component
+# and publishes it under "/services/memory_dealer".
+#
+# The Memory Dealer is a generic component that allocates
+# and managers a shared memory instance for each component
+# instance, implementing the IMemoryDealer interface
+# through which others can perform allocations in the
+# memory space.
+
+new -p /services/memory_dealer org.openbinder.services.MemoryDealer
+
+# This command creates a new empty process, and publishes
+# it under "/processes/background".
+
+new_process -p background
+
+echo "SmooveD is ready..."

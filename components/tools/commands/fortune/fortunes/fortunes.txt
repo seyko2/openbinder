@@ -1,0 +1,244 @@
+Thanks for visiting the Palm OS fortune cookie
+file.  Please remember to tip your waiter on the
+way out.
+%% 									added by dsandler.
+%% Note that any line starting with '%' is a
+%% comment as well as a delimiter between
+%% fortunes.
+<freston> if someone is thinking of building
+  while nuking another build (both on an
+  encrypted tree) while browsing the web in BSD
+  on a vmware session... don't bother...  it is
+  a silly idea
+%% 									added by dsandler.
+Better is not always better.
+	--hackbod
+%% 									added by dsandler.
+<lbj> The ventilation system acts as an
+  intercom.  I'm enjoying some light rock, less
+  talk that's being broadcast from an office in a
+  completely different company.
+%% 									added by dsandler.
+What part of 0xVfffffff don't you understand?
+	--jparks, defending some very broken %p
+	  behavior in his vsprintf()
+%% 									added by dsandler.
+<Trey> I haven't had any sound out of PalmSim
+  for quite some time now.
+<Trey> em: screen taps no longer make noises.
+<em> hmm.
+<diane> Trey: not even a tapping noise?
+* Trey thwacks diane with a fish.
+%% 									added by dsandler.
+<todd> Tell me about Push().
+<ctate_home> it returns Nevada()
+<todd> You're fired.
+%% 									added by dsandler.
+[15:04] * dsandler syncs the graphics branch
+[15:12] * freston climbs to his own branch
+%% 									added by dsandler.
+[12:18] <lbj> I don't like drugs.  They make me
+  feel better.
+%% 									added by dsandler.
+[13:20] * flashLinux successfully insults
+  himself with his very own B Shell command; thx
+  for the code to rip-off, dsandler :-)
+[13:20] <ctate> you just wrote "misfortune"?  ;)
+%%									added by dsandler 10/22/02.
+<ctate> It was the best of timings, it was the worst of timings....
+%%									added by dsandler 10/22/02
+[10:12] <todd> Say no to drugs, people.
+[10:12] <laz-gone> Be safe. Say no to everything.
+[10:12] <ctate> laz:  no.
+[10:12] <laz-gone> Good boy!
+%%									added by dsandler 10/23/02
+   Dan: What are you guys, the debugging duo?  
+ Jason: Yeah.
+   Dan: So, Justin fixes the bugs, and you type
+        it in?
+Justin: Sometimes he doesn't even type.
+%%							added by dsandler 10/23/02; a classic Be exchange
+[16:44] * dsandler forgets what the French for
+  'Software' is
+[16:44] <dsandler> something nonintuitive
+[16:44] <ctate> "Lingerie"
+%%							added by dsandler 10/23/02
+** Jason Parks is new to France:
+[09:46] <bindertroll-france> a little word of
+  advice to anyone who is going to visit france
+  in the near future *Only eat at restaurants*!
+[09:46] <bindertroll-france> buying food and
+  trying to translate the directions is not a
+  good idea
+[09:47] <bindertroll-france> because when you
+  get to noix beurre and think it means walnut
+  butter you're a whole lot of trouble
+%%							added by dsandler 11/05/02
+[11:02] <bindertroll-france> what is tant pis?
+[11:02] <dsandler> "too bad"
+[11:03] <dsandler> pronounced "ton pee" not
+  "tont piss" :-)
+[11:03] <bindertroll-france> how did you know i
+  pronounced it like that?
+[11:05] <dsandler> A lucky guess.
+%%							added by dsandler 11/05/02
+[12:12] * dsandler is good at making a fool of himself.
+[12:13] <diane> it's called being human
+[12:14] <todd> And it will NOT be tolerated.
+[12:14] <todd> D'oh, late again.
+[12:14] <diane> it's called being todd
+%%							added by dsandler 11/06/02
+	The code will be there...
+	Tomorrow
+	Bet your bottom dollar
+	That tomorrow,
+	There'll be code!
+		-- Dianne Hackborn
+%% 							added by dsandler 11/07/02 ; change 128654
+[13:39] <rjs> A note to all those writing
+  assemblers. Don't set a bit in an opcode unless
+  you damm well know what it does. :(
+%%							added by dsandler 11/11/02
+rod: You're only as strong as your weakest Sync.
+%%											added by jesse
+kenneth:  Its so horribly, horribly confused... 
+%%											added by jesse
+<laz> Raw brains are overrated. 
+%%											added by jesse 11/20/02
+Sometimes a dead horse needs to be beaten.
+  -- M. Huitema
+%%											added by jesse
+[11:59] <Trey> What news, mathias?
+[11:59] <mathias> it's leaking all over the house.
+[11:59] <diane> call a plumber
+[11:59] <mathias> diane, I am the plumber. And I suck at it.
+%%											added by jesse
+Now what are you really thinking? You never
+smile unless you're about to make fun of me.
+		-- Jason, to a smiling Justin
+%%							added by dsandler (courtesy joeo) 11/18/02
+[15:33] <lbj> I have an idea:  Let's script the
+  company.  Every day you come in and pick up
+  your (as they say) "sides".  You get a half
+  hour to read them over, and then you're on.  
+[15:33] <geh> Your Madison Avenue sensibilities
+  are surpisingly well-shined to a glassy-eyed
+  gleam, for someone who lives in a cave and
+  listens to opera.
+[15:34] <lbj> I am hollow to the core.
+%% 							added by dsandler 12/05/02
+"It Takes a Tough Man To Make A Tender Binder."
+	-- advertising slogan
+%% 		randomly-generated; see http://www.thesurrealist.co.uk/slogan.cgi
+"How Many Licks Does it Take to Get to the
+ Center of a Binder?"
+	-- advertising slogan
+%%
+"You'll Look a Little Lovelier Each Day with
+ Fabulous Pink Binder."
+	-- advertising slogan
+%%
+"Nobody Better Lay a Finger on my
+ WinSaveBits()."
+	-- advertising slogan
+%%
+"Let The Binder Troll Take The Strain."
+	-- advertising slogan
+%%
+"Can You Tell atom_ptr From Butter?"
+	-- advertising slogan
+%%
+[09:22] <binderTROLL> next week everyone will
+  program drunk!
+[09:22] <rlevenberg> in wetsuits
+[09:22] <binderTROLL> not a bad touch
+[09:24] <rlevenberg> imagery is everything
+%% 							added by dsandler 12/12/02
+<lbj> All driving directions assume Faneuil Hall
+  as your starting point.
+%%	lbj = Doug Fulton.  added by dsandler, 1/8/03
+When the finger points to the sky, the idiot looks
+at the finger.
+%%							added by dsandler
+%%		-- quote found frequently at the end of Regis' emails
+[15:35] <lbj> Saw a great bumper sticker combo (on
+  an pickup) this morning: On the left,
+  "Vote Green"; on the right "I'm killing
+  the Earth."
+%%							added by dsandler
+"Now, when someone asks me what I do, I look them
+straight in the eye and say `I'm designing a new
+dialect of Lisp.' I recommend this answer to
+anyone who doesn't like being asked what they do.
+The conversation will turn immediately to other
+topics."
+		-- Paul Graham
+%%							added by dsandler
+%%		from http://paulgraham.com/desres.html
+[08:40] <AGrooms> Who is the keeper of the MSDN DVDs?
+[08:41] * dsandler loves the out-takes
+%%					(chat 15-jan '03)
+[11:47] <dsandler> pixelknave: When did you start
+  speaking German?  
+[11:48] <pixelknave> since I typed
+  "babelfish.altavista.com"
+%%					(chat 16-jan '03)
+Todd's Law: 
+  Code always looks prettier before it handles
+  all cases.
+
+Trey's Corollary:
+  Code always looks prettier before it actually
+  works.
+%%					(from chat 7-jan '03)
+[08:35] <dsandler> [this space left intentionally ironic]
+%%					added by dsandler
+[12:36] <steve_irwin> take a look at this little
+  guy! what a beauty!
+[12:36] * a-moss-snake strikes!
+%%					[chat 20-dec '02]
+%%  warning: this fortune requires both "crocodile hunter"
+%%  and "everquest" knowledge
+[17:22] <dsandler> A
+[17:22] <dsandler> er, this is not #vi
+[17:23] <ctate> LOL
+%%					[chat 19-dec '02]
+[11:38] * freston casts a scroll of confusion on
+  ctate... wait! it is not required he is
+  already using emacs!
+%%					[chat 10 dec '02]
+What the FRUIT CAKE DID YOU JUST DO!??!?!?!
+	-- Greg Clayton
+%%
+[10:15] <ctate> C:\dev>p4 opened | wc -l
+[10:15] <ctate>     187
+[10:15] * p4bot coughs politely.
+%%					[chat 23 jan '03]
+<lbj> Are you allowed to talk during Go?
+<jparks> *you're* not allowed to talk during Go
+%%					[24 jan '03]
+    I told you so.
+    I told you I would say 'I told you so'.
+                    - seen on Joe's office door
+%%                  [27 jan '03]
+// MemHandle the case where we screwed winUp the result.
+   - Obscure comment, victim of find/replace over the years
+%%                  [31 jan '03]
+[11:03] <daveb> unsinged long status; <sigh> a long 
+  you can't burn.
+[11:08] <dsandler> "throw another long on the fire"
+%%					[3 feb '03]
+[14:50] * pixelknave likes Pico, doesn't care when 
+  dsandler makes fun of him.
+[14:51] <ctate> not just dsandler
+%%					[14 feb '03]
+<hackbod> You know, you can never have too much lucite.
+%%					[10 may '04] added by joeo
+[3:56] <regis> I took my pills; you can't make me mad.
+%%					[16 jun '04] added by joeo
+<manuel> He writes Perl that happens to compile with ADS.
+<dsandler> That's impressive, because I find it hard to write C that compiles with ADS.
+%%					[17 jun '04] added by joeo
+<dsandler> Hot tea gives me the POWER of TEN WINSTON CHURCHILLS!
+%%					[13 aug '04] added by dsandler
+%% 					(it seemed pretty popular with everyone)

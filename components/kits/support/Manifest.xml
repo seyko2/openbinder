@@ -1,0 +1,8 @@
+<manifest>
+	<component local="CatalogMirror">
+		<interface name="org.openbinder.support.ICatalogPermissions" />
+		<interface name="org.openbinder.support.ICatalog" />
+		<interface name="org.openbinder.support.INode" />
+		<interface name="org.openbinder.support.IIterable" />
+	</component>
+</manifest>

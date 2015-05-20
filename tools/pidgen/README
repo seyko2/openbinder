@@ -1,0 +1,55 @@
+
+Note, the error text that gets printed when you
+have bad arguments is wrong.  There is little to
+no helpful debugging information printed, and
+if you don't follow these guidelines, undefined
+things happen.
+
+
+These are the usages:
+
+
+To get dependencies:
+
+idlc --deps --output OUTPUTDIR IDLFILE
+
+Note, the files printed as depenencies are not
+the correct files for dependencies.  I'm checking
+it in incorrect so that Steven can put it into
+BOBS.
+
+
+To generate-o-rama:
+
+idlc INCLUDES [--system] [--output DIR] IDLFILE
+
+INCLUDES is zero or more of:
+	-I<includedir>
+There is no space between the I.
+The current directory is implicitly in the list.
+This might change.  Specify full path names here
+for best results.
+
+[--system]
+Optional.  Causes it to generate system headers
+(i.e. uses '<' and '>' for #includes and prepends
+a '_' to the header guards.
+
+[--output DIR]
+Save generated files in the directory DIR.
+It's optional, but you should use it.  CWD is used
+otherwise.
+
+IDLFILE
+The name of the file to process.  It should end with
+.idl, although idlc shouldn't bork if it doesn't. 
+Currently, it might bork.
+
+
+The following files are created in the output directory:
+
+If the idl file is XXX.idl
+
+If you're generating dependencies, the file is "IXXX.d"
+If you're generating-o-rama the files are "IXXX.h" and "IXXX.cpp"
+

@@ -1,0 +1,279 @@
+The new XML Kit.
+
+The kit has three major parts:
+	- Parsing Classes
+	- Parsing Functions
+	- Container Classes
+
+
+===============================
+PARSING CLASSES
+===============================
+
+-------------------------------
+BXMLDataSource
+-------------------------------
+
+The data has to come from somewhere.  To reduce copying, we don't
+use BDataIOs for the stream, we use BXMLDataSource.
+
+The parsing classes parse an xml stream (either a character
+buffer or a BDataIO) which are implemented using BXMLDataSource
+derivitives.  It seems to me that the correct way to implement
+just about any other stream source is to make a BDataIO around
+it, but you can save a complete memcpy of all the data by using
+a BXMLDataSource.  The semantics of BXMLDataSource are as follows:
+The parser function (below) takes xml in chunks (to reduce memory
+footprint), and parses that.  When it needs more, it calls
+the GetNextBuffer function.  The best way to show this is give
+some examples.  I will show the code for BXMLBufferSource and
+BXMLDataIOSource:
+
+
+// You can see that this doesn't use the provided buffer in data,
+// it replaces it with its own.  The parse function will not free
+// the memory you give it here.
+status_t
+BXMLBufferSource::GetNextBuffer(size_t * size, uchar ** data,
+								int * done)
+{
+	if (!_data || _length < 0)
+		return B_NO_INIT;
+	*size = _length;
+	*data = (uchar *) _data;
+	*done = 1;
+	return B_OK;
+}
+
+// This does use the provided buffer.  The parser will free
+// the memory that it's letting you write into.
+status_t
+BXMLDataIOSource::GetNextBuffer(size_t * size, uchar ** data,
+								int * done)
+{
+	if (!_data)
+		return B_NO_INIT;
+	size_t bufSize = *size;
+	*size = _data->Read(*data, bufSize);
+	if (*size < 0)
+		return *size;
+	*done = *size < bufSize;
+	return B_OK;
+}
+
+
+-------------------------------
+BXMLObjectFactory
+-------------------------------
+
+BXMLObjectFactory provides hook functions to create objects.
+You can overload the functions to create subclasses of the
+XML container objects if for your application you need to.
+Basically, we didn't want to prevent you from using your
+own classes.
+
+
+-------------------------------
+BXMLParseContext
+BXMLDocumentCreationContext
+BXMLDocumentParseContext
+BXMLValidatingContext
+-------------------------------
+
+For most simple purposes, BMXLParseContext is an opaque class.
+You need one, but you don't need to know what it does, so we
+provide a bunch of convenience functions that work for the
+common cases of reading some XML.
+
+BXMLParseContext contains all of the context that the parser
+needs to successfully parse.  It has the parse flags (explained
+below), the current line and column numbers (for error handling),
+as well as pointers to structures as it builds the XML parse
+tree.
+
+There are four levels of inheritance here, which allows for
+maximum flexibility in using the data that the parser spits out.
+
+The lowest level is BXMLParseContext, which has all of the virtual
+functions that the parse function requires.  Almost none of its
+methods do anything.  Note that most of the BStrings are passed
+by non-const references.  For any of these, you are allowed to
+use BString's Adopt function to take ownership of the buffer, and
+avoid a memcpy.  BXMLDocumentCreationContext does this.
+
+The next level is BXMLDocumentCreationContext, which takes the
+raw string data that you give it, and creates container classes
+(explained below) from it.  It uses a BXMLObjectFactory (either
+one you provide or a default one) to actually create the objects
+(see above).
+
+The next level is BXMLDocumentParseContext which takes the
+container classes, and puts them together into a tree.  This is
+a separate process from actually creating the objects, because
+we wanted to allow interception of the process between, for
+things like validation.  Optionally, BXMLDocumentParseContext
+can go fetch external entities and include them into the document.
+It's methods are likely to change as we figure out how to deal
+with remote data sources, so for now we'll just say that the
+implementation of external objects is undocumented and only
+partially implemented.
+
+The top level, BXMLValidatingContext, checks each object before
+it inserts it into the tree to make sure that it is valid,
+according to the DTD.  It does this by overriding the virtual
+functions of BXMLDocumentParseContext, and then calling the
+BXMLDocumentParseContext version of them after the object has
+been checked.
+
+The net effect of this is that if you want to get XML data as it
+comes in, but aren't interested in using our container classes
+(for example, if you're going to parse it into some other data
+structure), then you should subclass BXMLParseContext to create
+your objects.  If you want a parser that checks well-formedness,
+then you should create a BXMLDocumentParseContext and parse
+with that.  If you want a validating parser, then you should use
+BXMLValidatingContext.  Note however, that most cases of the last
+two are covered by the various forms of ParseXML and
+ParseXMLValidating.
+
+
+
+===============================
+PARSING FUNCTIONS
+===============================
+
+There are about a thousand different permutations of the ParseXML
+function.  They are mostly convenience functions which allow you
+to ignore most of the details about dealing with parse contexts
+and object factories.
+
+See the header for them, because they're changing, and more are
+being added as we add more features to the XML Kit.  Most of them
+are self explanitory.
+
+-------------------------------
+Parse Flags
+-------------------------------
+
+However, we will talk for a minute about flags.  The flags allow
+slight extensions to the XML spec to make some things a little
+more useful or simple.
+
+B_XML_COALESCE_WHITESPACE (off by defauly)
+
+This flag modifies the handling of whitespace.  If you set this
+flag, then all strings you see have all preceeding and following
+whitespace characters stripped, and all whitespace in the middle
+of the string is converted into a single space character.  For
+example, if you had a text node that was " he  ll  o  \n ", it
+would be converted to "he ll o".  This is useful if you're
+only interested in the elements (it ignores all the whitespace
+that your XML authors would put in for visual formatting), and
+if you're markup doesn't pay attention to whitespace.
+
+B_XML_HANDLE_ATTRIBUTE_ENTITIES
+B_XML_HANDLE_CONTENT_ENTITIES
+B_XML_HANDLE_ALL_ENTITIES  (XXX by default)
+
+These turn on or of the lookup of entities that are found in
+the document.  If you want a non-validating parser according
+to XML 1.0, then call ParseXML with all of these unset.
+To be a correct validating parser, these must be on.
+
+
+===============================
+CONTAINER CLASSES
+===============================
+
+There are a ton of container classes.  Originally, we were going
+to just do DOM.  The problem with this is that DOM isn't really
+a C++ friendly API.  It's much happier being in JavaScript.
+Specifically, the right way to do it would be to use exceptions,
+but Be has a no exceptions policy for the API, and indeed, BeIA
+doesn't even compile with exceptions enabled, for a variety of
+reasons.  However, DOM could be implemented on top of the XML Kit
+container classes.  In addition the memory management model
+doesn't fit with rest of the Be API model, and we felt that this
+would cause more complication than was acceptable, and limit the
+things we could do with the kit in the future.
+
+It being a C++ API, we decided to use more different classes, as
+opposed to the single DOM Node class to represent all different
+data types.
+
+So, we'll go over the interesting container classes to give you
+a feel for them.  Most of them are easy, and do what you would
+expect.
+
+The order of this explanation is pretty arbitrary, because the
+different classes are all interrelated.
+
+-------------------------------
+BDocument
+-------------------------------
+
+BDocument is a class that represents a document.  Like the XML
+spec requires, you can add at most one element to a document,
+and at most one DOCTYPE to a document.  You can have as many
+Processing Instructions and Comments as you want.  You can't
+have any CData or Text content directly attached to a document.
+BDocument has a set of functions for manipulating its children.
+They're pretty self explanitory.
+
+It also has a function for accessing the Document Type data
+and the single element that are attached.
+
+Note that although they exhibit similary properties, BDocument
+is not a subclass of BElement, nor is BElement a subclass of
+BDocument.  They do however share a common base class.
+
+-------------------------------
+BContent
+-------------------------------
+
+Any XML content that can be attached to an XML document or
+an XML Element is derived from BContent.  If this were DOM,
+this would be the Node class.
+
+BContents contain a pointer to the element that they are a
+direct child of, if any, and a  pointer to the document they
+are a child of, if any.  These are accessible from the
+Parent() and Document() functions.
+
+They also have functions to access their siblings (next and
+previous).  The children content of an element are stored as
+a doubly linked list.  You traverse the list with the
+{Next|Previous}Sibling functions.  There are also convenience
+functions that will traverse the sibling list until it finds
+an BContent of a matching type.  You can accomplish this by
+using the version that takes a type mask.
+
+The codes are declared in XMLDefs.h, and include
+B_XML_DOCUMENT_CONTENT, B_XML_ELEMENT_CONTENT,
+B_XML_COMMENT_CONTENT as well as others.
+
+There is also NextSiblingElement() and PreviousSiblingElement()
+traverse scan the list and return you the elements. They cast
+it to an element for you.  This is in case all you care about
+is elements, and don't want to deal with the casting.
+
+BContent also includes a virtual Clone() function whcih returns
+an exact copy of the content (of course without the sibling
+pointers).  Use this instead of the copy constructor when you
+want to duplicate an element.  The copy constructor is
+protected, because duplicating an XML content is potentially
+an expensive process, and you don't want to do it accidentally.
+
+
+-------------------------------
+BElement
+-------------------------------
+
+BElement is the class that represents an Element.  It is one of
+many subclasses of BContent, but probably the one you will
+use the most.
+
+Since its children are stored as a linked list, there are
+functions to access the first (or last) BContent children,
+with optional type masks.
+

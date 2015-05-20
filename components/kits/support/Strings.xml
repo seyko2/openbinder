@@ -1,0 +1,145 @@
+<strings>
+	<string>
+		<key>80000000</key>
+		<value locale="enUS">An error.</value>
+		<value locale="frFR">A French error.</value>
+	</string>	
+
+	<!-- SYSTEM ERRORS -->
+	<string> <key>80000501</key>
+		<value locale="enUS">Time out</value>
+	</string>
+	<string> <key>80000502</key>
+		<value locale="enUS">Parameter error</value>
+	</string>
+	<string> <key>80000503</key>
+		<value locale="enUS">No free resource for completing the operation</value>
+	</string>
+	<string> <key>80000504</key>
+		<value locale="enUS">No free RAM</value>
+	</string>
+	<string> <key>80000505</key>
+		<value locale="enUS">Operation not allowed</value>
+	</string>
+	
+	<string> <key>80000529</key>
+		<value locale="enUS">Index not in range for the data set</value>
+	</string>
+	<string> <key>8000052A</key>
+		<value locale="enUS">Bad argument type passed to function</value>
+	</string>
+	<string> <key>8000052B</key>
+		<value locale="enUS">Mismatched values passed to function</value>
+	</string>
+	<string> <key>8000052C</key>
+		<value locale="enUS">Name not found</value>
+	</string>
+	<string> <key>8000052D</key>
+		<value locale="enUS">Name in use</value>
+	</string>
+	<string> <key>8000052E</key>
+		<value locale="enUS">Initialization failed</value>
+	</string>
+	<string> <key>8000052F</key>
+		<value locale="enUS">Bad data in function</value>
+	</string>
+	<string> <key>80000530</key>
+		<value locale="enUS">Data truncated</value>
+	</string>
+	<string> <key>80000531</key>
+		<value locale="enUS">My bad</value>
+	</string>
+	
+	<string> <key>80000534</key>
+		<value locale="enUS">Weak reference gone</value>
+	</string>
+	<string> <key>80000535</key>
+		<value locale="enUS">In order to run ^0 ^1, you need a version of ^2 that is compatible with Palm OS ^3.</value>
+	</string>
+	<string> <key>80000536</key>
+		<value locale="enUS">Reached end of data</value>
+	</string>
+	<string> <key>0x80000537</key>
+		<value locale="enUS">Operation canceled by user</value>
+	</string>
+	
+	<!-- BINDER ERRORS -->
+	<string> <key>80004A01</key>
+		<value locale="enUS">Required argument is missing</value>
+	</string>
+	<string> <key>80004A02</key>
+		<value locale="enUS">Bad argument type supplied to object</value>
+	</string>
+	<string> <key>80004A03</key>
+		<value locale="enUS">Target is dead</value>
+	</string>
+	<string> <key>80004A04</key>
+		<value locale="enUS">Unknown transaction code</value>
+	</string>
+	<string> <key>80004A05</key>
+		<value locale="enUS">Bad transaction</value>
+	</string>
+	<string> <key>80004A06</key>
+		<value locale="enUS">Maximum number of loopers reached</value>
+	</string>
+	<string> <key>80004A07</key>
+		<value locale="enUS">Interface not supported</value>
+	</string>
+	<string> <key>80004A08</key>
+		<value locale="enUS">Unknown method name</value>
+	</string>
+	<string> <key>80004A09</key>
+		<value locale="enUS">Unknown property name</value>
+	</string>
+	<string> <key>80004A0A</key>
+		<value locale="enUS">Not enough stack space for call</value>
+	</string>
+	
+	<!-- REGEXP ERRORS -->
+	<string> <key>80005201</key>
+		<value locale="enUS">Unmatched parenthesis</value>
+	</string>
+	<string> <key>80005202</key>
+		<value locale="enUS">Expression too big</value>
+	</string>
+	<string> <key>80005203</key>
+		<value locale="enUS">Too many parenthesis (sorry!)</value>
+	</string>
+	<string> <key>80005204</key>
+		<value locale="enUS">Junk at end of expression</value>
+	</string>
+	<string> <key>80005205</key>
+		<value locale="enUS">*+ one operand empty</value>
+	</string>
+	<string> <key>80005206</key>
+		<value locale="enUS">Nested *?+</value>
+	</string>
+	<string> <key>80005207</key>
+		<value locale="enUS">Invalid bracket range</value>
+	</string>
+	<string> <key>80005208</key>
+		<value locale="enUS">Unmatched bracket</value>
+	</string>
+	<string> <key>80005209</key>
+		<value locale="enUS">Internal error</value>
+	</string>
+	<string> <key>8000520A</key>
+		<value locale="enUS">?+* follows nothing</value>
+	</string>
+	<string> <key>8000520B</key>
+		<value locale="enUS">Trailing backslash</value>
+	</string>
+	<string> <key>8000520C</key>
+		<value locale="enUS">Corrupted program</value>
+	</string>
+	<string> <key>8000520D</key>
+		<value locale="enUS">Memory corruption</value>
+	</string>
+	<string> <key>8000520E</key>
+		<value locale="enUS">Corrupted pointers</value>
+	</string>
+	<string> <key>8000520F</key>
+		<value locale="enUS">Corrupted opcode</value>
+	</string>
+	
+</strings>

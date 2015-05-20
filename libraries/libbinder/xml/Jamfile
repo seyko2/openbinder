@@ -1,0 +1,27 @@
+###############################################################################
+#
+# Copyright (c) 2002-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+xmlSources = 	
+	BufferSource.cpp
+	Creator.cpp
+	DataSource.cpp
+	ParseContext.cpp
+	ParseXML.cpp
+	StringUtils.cpp
+	Tag.cpp
+	Writer.cpp
+	XMLIByteInputSource.cpp
+	XMLOStr.cpp
+	XMLParserCore.cpp
+	XMLParser.cpp
+	XMLWriter.cpp
+	XML2ValueParser.cpp
+	Value2XML.cpp
+	;

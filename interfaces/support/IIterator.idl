@@ -1,0 +1,138 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+/*!	@file support/IIterator.idl
+	@ingroup CoreSupportDataModel
+
+	@brief Interface for performing iteration over some data.
+*/
+
+namespace palmos {
+namespace support {
+
+//!	Basic iteration iterface.
+/*!	An IIterator allows you to step through some series of data.
+	It is a stateful object (the iterator holds a position in the data),
+	so you must be careful if you share iterators between threads.
+	You usually retrieve an IIterator object from IIterable::NewIterator().
+
+	Clients will usually use the SIterator convenience
+	class instead of making direct calls on an IIterator.  Implementations
+	should never directly implement IIterable, instead using BGenericIterable
+	or one of its subclasses.
+
+	This is the minimal system data iteration interface.
+	Note that there is no Reset() or Rewind() method on this
+	interface; for non-streaming access, see IRandomIterator.
+
+	@ingroup CoreSupportDataModel
+*/
+interface IIterator
+{
+	enum
+	{
+		/*!	This is the limit of the number of binders that
+			can be returned from Next().
+		*/
+		BINDER_IPC_LIMIT = 0x05
+	};
+
+	//!	Flags used in Next() and other iterator functions as well.
+	/*!	The implementation of all these flags is optional.  However,
+		if your iterator does implement projections, then it must also
+		implement IGNORE_PROJECTION.  Otherwise implementations of
+		IIterator can completely ignore these flags.
+
+		There is a copy of these flags in INode, if you change
+		these don't forget to change those as well.
+	*/
+	enum
+	{
+		//!	Return the contents of an IDatum instead of the object itself?
+		/*!	Can be supplied to IIterator::Next() and various INode functions.
+			Implementations of IIterator are not required to respect this
+			flag -- clients must deal with them ignoring it.
+		*/
+		REQUEST_DATA        = 0x1000,
+
+		//!	Collapse catalog entries to SValue mappings?
+		/*!	Can be supplied to IIterator::Next() and various INode functions.
+			Implementations of IIterator are not required to respect this
+			flag -- clients must deal with then ignoring it.  Often used
+			in conjunction with REQUEST_DATA so that you get back a collapsed
+			node containing the data instead of IDatum objects.
+		*/
+		COLLAPSE_NODE		= 0x2000,
+		COLLAPSE_CATALOG	= 0x2000,	//!< @deprecated Synonyn for COLLAPSE_NODE
+
+		//!	Deprecated: Ignore any projections when creating the output value/node?
+		/*!	@deprecated This flag will probably be removed.
+		
+			Can be supplied to IIterator::Next() and various INode functions.
+			This is only useful when an iterator actually implements
+			projections; if it does, it must also implement this flag
+			(though implementing the flag may mean just returning the INode
+			object and ignore the COLLAPSE_NODE flag).
+		*/
+		IGNORE_PROJECTION	= 0x4000
+	};
+
+	typedef sequence<SValue> ValueList;
+
+properties:
+	//!	The iterable options that are in force for this iterator.
+	/*!	You can use this determine which of the arguments given
+		to IIterable::NewIterator() are in force for this iterator,
+		and in what way.  These are the same form as the arguments
+		supplied to IIterable::NewIterator(). */
+	[readonly]SValue options;
+
+methods:
+	//!	Return a batch of keys and values from the iteration.
+	/*!	@param[out] keys The mapping keys.  If your iterator is
+			returning simple values (not mappings), the keys can
+			be B_WILD_VALUE, or you can just make this sequence empty.
+		@param[out] values The value of each item.  Must be returned.
+		@param[in] flags Any of REQUEST_DATA, COLLAPSE_NODE, IGNORE_PROJECTION.
+		@param[in] count A "hint" about how many results you want.
+			(You may get more, or fewer.)  Use 0 for "don't care".
+		@result B_OK if results were returned, B_END_OF_DATA if there
+			is no more data in the iterator, or some other error code
+			if an error occurred.
+
+		This API is designed, for performance reasons, to return iteration
+		results as batches.  You will usually use SIterator::Next() to hide
+		that batching mechanism and retrieve the entries one at a time.  In
+		either case, the function will return B_END_OF_DATA once you have
+		reached the end of the iterator's data.
+
+		The iterator may return key/value pairs, or single values.  If returning
+		single values, by the SValue mapping rules the key should always be
+		B_WILD_VALUE.
+
+		The Next() method can be given a flags parameter.  Like INode::Walk(),
+		you can supply REQUEST_DATA and COLLAPSE_NODE in the function's flags,
+		with the corresponding semantics for the values the iterator returns.
+		Also like INode::Walk(), the iterator is free to ignore these flags.
+	*/
+	status_t Next([out]ValueList keys, [out]ValueList values, uint32_t flags, [optional]size_t count);
+
+events:
+	//!	Pushed when the set of items in an iterator changes.
+	/*!	This event is pushed when the actual items contained in an
+		iterator changes -- i.e., when items are added or removed.
+		Note that you will not actually see the new items until
+		you re-query the iterable. */
+	void IteratorChanged(IIterator it);
+}
+
+} }	// namespace palmos::support

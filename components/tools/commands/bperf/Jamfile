@@ -1,0 +1,35 @@
+###############################################################################
+#
+# Copyright (c) 2001-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+# Jamfile to build bperf
+PSSubDir TOP components tools commands bperf ;
+
+# Define local sources
+local sources =	
+	main.cpp
+	EffectIPC.cpp
+	icache.cpp
+	;
+
+# Set local vars
+local CREATOR = bprf ;
+local TYPE = libr ;
+local PKGNAME = org.openbinder.tools.commands.BPerf ;
+
+# Build the component
+Component BPerf :
+	$(sources)
+
+	libbinder$(SUFSHL)
+	libinterface$(SUFSHL)
+	libprotein$(SUFSHL)
+	libstudio$(SUFSHL)	
+	;
+

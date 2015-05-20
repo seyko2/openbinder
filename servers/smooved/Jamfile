@@ -1,0 +1,37 @@
+###############################################################################
+#
+# Copyright (c) 2001-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+# Jamfile to build smooved
+PSSubDir TOP servers smooved ;
+
+# Define local sources
+local sources =
+	smoove.cpp
+	;
+
+# Set local flags
+if $(TARGET_DEVICE) = LINUX_X86 && $(DEBUG) = Debug {
+	# Building with electric fence slows things down, and we
+	# don't have an ARM build yet
+#	LINKFLAGS on smooved += -lefence ;
+}
+
+if $(DISABLE_LIBSEGFAULT) = "" {
+	LINKFLAGS on smooved += -lSegFault ;
+}
+LINKFLAGS on smooved += -lc -lpthread -ldl -lrt ;
+
+# Build the executable
+Main smooved : $(sources) ;
+LinkLibraries smooved :
+	libbinder$(SUFSHL)
+	libbinder_glue$(SUFLIB)
+	;
+

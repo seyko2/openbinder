@@ -1,0 +1,195 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+import <support/IProcess.idl>
+import <support/INode.idl>
+
+namespace palmos {
+namespace services {
+
+//!	General API to register for and receiving event broadcasts.
+/*!	This interface is often used as part of the informant 
+	service (published at @c /services/informant), however objects
+	can also implement it themselves for a private notification
+	registry.
+	
+	@note While the IInformant interface and informant service can be useful
+	in some circumstances, it often makes more sense to use an
+	explicit @ref LinkDefn instead.  See, for example, the events
+	and properties on the INode and IDatum interfaces.
+	
+	The informant keeps tracks of objects interested in notifications
+	(specified through the RegisterForCallback() or RegisterForCreation()
+	APIs) and allows those notifications to be broadcast to them
+	through Inform().  Normally an object registering for an
+	informant notification implements the IInformed interface,
+	whose method IInformed::OnInform() is the signature the informant
+	uses when calling back.
+	
+	Informant notifications are sent out asynchronously -- they are
+	@em not called back in the same thread that calls Inform().
+	
+	For using the informant from C++, @ref BinderRecipes has many
+	examples.
+	
+	For using the informant from the shell, see @ref ExampleInformant.
+	
+	@todo API should be updated to support a richer process model,
+	where transient processes can be created to handle the
+	RegisterForCreation() API.
+	
+	@todo RegisterForCreation() should use an SValue instead of
+	an SString for the component name, so that constructor
+	arguments can be included.
+	
+	@see IInformed, @ref BinderRecipes, @ref ExampleInformant
+*/
+interface IInformant
+{
+methods:
+	//!	Register to receive notifications through a callback to an existing object.
+	/*!	@param[in]	key		The kind of notification you are interested in.
+		@param[in]	target	The object to call when the informant notification is being sent.
+		@param[in]	method	The method to call on your object, often SValue::String("OnInform").
+		@param[in]	flags	Link flags, using the same values as IBinder::Link().
+		@param[in]	cookie	Any additional custom data to associate with your callback.
+		
+		After calling this function, your object @a target will receive calls on
+		its @a method whenever someone calls Inform() with the same @a key.  Use
+		UnregisterForCallback() to remove your object from the informant.
+		
+		When receiving a notification, your function @a method will be called
+		with the parameters (SValue @a information, SValue @a cookie, SValue @a key).
+		The @a information is supplied by the caller to Inform().
+	*/
+	status_t	RegisterForCallback(SValue key,
+									IBinder target,
+									SValue method,
+									[optional]uint32_t flags,
+									[optional]SValue cookie);
+	
+	//!	Register to receive notifications through a newly instantiated component.
+	/*!	@param[in]	key		The kind of notification you are interested in.
+		@param[in]	context	The Binder context (SContext) in which to instantiate your component.
+		@param[in]	process	The process in which to instantiate your component.
+		@param[in]	component	Name of your component to instantiate.
+		@param[in]	inspect	The interface to call on your component.
+		@param[in]	method	The method in @a interface to call on your object, often
+							SValue::String("OnInform").
+		@param[in]	flags	Link flags, using the same values as IBinder::Link().
+		@param[in]	cookie	Any additional custom data to associate with your component.
+		
+		This method is like RegisterForCallback(), except instead of requiring
+		an existing object it will dynamically instantiate an object and then
+		send the notification to that object.
+		
+		When processing an informant notifications that this component is registered
+		for, the informant will:
+		
+		-# Call SContext(@a context).RemoteNew(@a component, @a process).
+		-# Call IBinder::Inspect() for the selected @a inspect interface.
+		-# Call IBinder::Invoke() of @a method on the final object.
+		
+		Use UnregisterForCreation() to remove your component from the informant.
+	*/
+	// flags are the IBinder link flags (weak is for the team)
+	status_t	RegisterForCreation(SValue key,
+									INode context,
+									IProcess process,
+									SString component,
+									SValue inspect,
+									SValue method,
+									[optional]uint32_t flags,
+									[optional]SValue cookie);
+	
+	//!	Remove an existing callback registration from the informant.
+	/*!	@param[in]	key		The previously registered kind of notification.
+		@param[in]	target	The previously registered target object.
+		@param[in]	method	The previously registered method name.
+		@param[in]	flags	The previously registered link flags.
+		
+		Any callback registrations previously supplied to RegisterForCallback()
+		and matching all of @a key, @a target,
+		@a method, and @a flags will be removed from the informant.
+	*/
+	status_t	UnregisterForCallback(	SValue key,
+										IBinder target,
+										SValue method,
+										[optional]uint32_t flags);
+	
+	//!	Remove an existing  creation registration from the informant.
+	/*!	@param[in]	key		The previously registered kind of notification.
+		@param[in]	context	The previously registered SContext.
+		@param[in]	process	The previously registered process.
+		@param[in]	component	The previously registered component name.
+		@param[in]	inspect	The previously registered interface name.
+		@param[in]	method	The previously registered method name.
+		@param[in]	flags	The previously registered link flags.
+		
+		Any creation registrations previously supplied to RegisterForCreation()
+		and matching all of @a key, @a context,
+		@a process, @a component, @a inspect, @a method, and @a flags
+		will be removed from the informant.
+	*/
+	status_t	UnregisterForCreation(	SValue key,
+										INode context,
+										IProcess process,
+										SString component,
+										SValue inspect,
+										SValue method,
+										[optional]uint32_t flags);
+
+	//!	Send informant notifications to registered objects.
+	/*!	@param[in]	key			Kind of notification to send.
+		@param[in]	information	Information to go with the notification.
+		
+		Calling this method broadcasts a notification to all callback
+		and creation registrations for the same @a key.  This broadcast
+		will be done in a separate thread, not your own.  That is, the
+		notifications will be happening as your thread returns from this
+		function. */
+	status_t	Inform(SValue key, SValue information);
+}
+
+//!	Convenience method for receiving callbacks from IInformant.
+/*!	The OnInform() method included here has the method signature
+	that IInformant using when broadcasting notifications back
+	to its client.  This interface provides a convenient way to
+	create a target for receiving notifications from the informant,
+	though the informant itself does not require that you use it.
+
+	When using this interface, you will need to supply SValue::String("OnInform")
+	for your @a method on IInformant::RegisterForCallback() and
+	IInformant::RegisterForCreation(), and
+	SValue::String("org.openbinder.services.IInformed") for @a inspect on
+	IInformant::RegisterForCreation().
+		
+	@see IInformant
+*/
+interface IInformed
+{
+methods:
+	//!	Standard callback function from IInformant.
+	/*!	@param[in]	information	The @a information value given to IInformant::Inform().
+		@param[in]	cookie		The @a cookie given when this object was registered.
+		@param[in]	key			The kind of notification being sent.
+		
+		This is the method signature that the informant calls when broadcasting
+		notifications.  Implement it to receive the notification(s) you have
+		registered for.
+	*/
+	void		OnInform(	SValue information,
+							SValue cookie,
+							SValue key);
+}
+
+} }	// namespace palmos::services

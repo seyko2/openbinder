@@ -1,0 +1,246 @@
+/home/jparks/src/open-source/openbinder/headers/support/Debug.h:89: Warning: Found ';' while parsing initializer list! (doxygen could be confused by a macro call without semicolon)
+/home/jparks/src/open-source/openbinder/headers/support/InstantiateComponent.h:59: Warning: Found ';' while parsing initializer list! (doxygen could be confused by a macro call without semicolon)
+/home/jparks/src/open-source/openbinder/build/headers/storage/IReferable.h:24: Warning: the name `support/IReferable.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/ICatalogPermissions.h:24: Warning: the name `support/ICatalogPermissions.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/IDatum.h:24: Warning: the name `support/IDatum.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/IIterable.h:24: Warning: the name `support/IIterable.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/IIterator.h:24: Warning: the name `support/IIterator.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/INode.h:24: Warning: the name `support/INode.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/INodeObserver.h:24: Warning: the name `support/INodeObserver.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/IProcess.h:24: Warning: the name `support/IProcess.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/IRandomIterator.h:24: Warning: the name `support/IRandomIterator.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/ISelector.h:24: Warning: the name `support/ISelector.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/ITable.h:24: Warning: the name `support/ITable.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/IUuid.h:24: Warning: the name `support/IUuid.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/IVirtualMachine.h:24: Warning: the name `support/IVirtualMachine.idl' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/headers/support/Iterator.h:16: Warning: the name `support/Itertor.h' supplied as the second argument in the \file statement is not an input file
+/home/jparks/src/open-source/openbinder/build/headers/support/IDatum.h:190: Warning: documented function `void DatumChanged' was not defined.
+/home/jparks/src/open-source/openbinder/build/headers/support/IIterator.h:152: Warning: documented function `void IteratorChanged' was not defined.
+/home/jparks/src/open-source/openbinder/build/headers/support/INode.h:255: Warning: no matching class member found for
+  void NodeChanged()
+/home/jparks/src/open-source/openbinder/build/headers/support/INode.h:259: Warning: no matching class member found for
+  void EntryCreated()
+/home/jparks/src/open-source/openbinder/build/headers/support/INode.h:263: Warning: no matching class member found for
+  void EntryModified()
+/home/jparks/src/open-source/openbinder/build/headers/support/INode.h:267: Warning: no matching class member found for
+  void EntryRemoved()
+/home/jparks/src/open-source/openbinder/build/headers/support/INode.h:271: Warning: no matching class member found for
+  void EntryRenamed()
+/home/jparks/src/open-source/openbinder/build/headers/support/IRandomIterator.h:106: Warning: documented function `void IteratorDataChanged' was not defined.
+/home/jparks/src/open-source/openbinder/build/headers/support/ITable.h:183: Warning: documented function `void TableChanged' was not defined.
+/home/jparks/src/open-source/openbinder/build/headers/support/ITable.h:187: Warning: documented function `void CellModified' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/package/PackageManager.cpp:544: Warning: no matching class member found for
+  Component(const sptr< BPackageManager::Package >< BPackageManager::Package > &package, const SString &id, const SValue &value)
+Possible candidates:
+  BPackageManager::Component::Component(const sptr< Package > &package, const SString &id, const SValue &value)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/package/PackageManager.cpp:603: Warning: no matching class member found for
+  void SetNext(const sptr< BPackageManager::Component >< BPackageManager::Component > &next)
+Possible candidates:
+  void BPackageManager::Component::SetNext(const sptr< Component > &next)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/package/PackageManager.cpp:609: Warning: no matching class member found for
+  void SetPrev(const sptr< BPackageManager::Component >< BPackageManager::Component > &prev)
+Possible candidates:
+  void BPackageManager::Component::SetPrev(const sptr< Component > &prev)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/package/PackageManager.cpp:674: Warning: no matching class member found for
+  ssize_t AddComponent(const sptr< BPackageManager::Component >< BPackageManager::Component > &component)
+Possible candidates:
+  ssize_t BPackageManager::Package::AddComponent(const sptr< Component > &component)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/services/Informant.cpp:72: Warning: no matching class member found for
+  status_t RegisterForCallback(const SValue &key, const BNS(::palmos::support::) sptr< BNS(palmos::support)::IBinder > &target, const SValue &method, uint32_t flags, const SValue &cookie)
+Possible candidates:
+  virtual status_t BInformant::RegisterForCallback(const SValue &key, const sptr< IBinder > &target, const SValue &method, uint32_t flags=0, const SValue &cookie=B_UNDEFINED_VALUE)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/services/Informant.cpp:106: Warning: no matching class member found for
+  status_t UnregisterForCallback(const SValue &key, const BNS(::palmos::support::) sptr< BNS(palmos::support)::IBinder > &target, const SValue &method, uint32_t flags)
+Possible candidates:
+  virtual status_t BInformant::UnregisterForCallback(const SValue &key, const sptr< IBinder > &target, const SValue &method, uint32_t flags)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Binder.cpp:676: Warning: no matching class member found for
+  void BeginEffectContext(const EffectCache &cache)
+Possible candidates:
+  void BBinder::BeginEffectContext(const struct EffectCache &cache)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:25: Warning: no matching class member found for
+  BBufferIO(BPositionIO *stream, size_t buf_size, bool owns_stream)
+Possible candidates:
+  BBufferIO::BBufferIO(const sptr< IByteInput > &inStream, const sptr< IByteOutput > &outStream, const sptr< IByteSeekable > &seeker, size_t buf_size=DEFAULT_BUF_SIZE)
+  BBufferIO::BBufferIO(size_t buf_size=DEFAULT_BUF_SIZE)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:54: Warning: no matching class member found for
+  ssize_t ReadAt(off_t pos, void *buffer, size_t size)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:149: Warning: no matching class member found for
+  ssize_t WriteAt(off_t pos, const void *buffer, size_t size)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:234: Warning: no matching class member found for
+  status_t SetSize(off_t size)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:293: Warning: no matching class member found for
+  BPositionIO * Stream() const
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:299: Warning: no matching class member found for
+  size_t BufferSize() const
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:305: Warning: no matching class member found for
+  void PrintToStream() const
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:316: Warning: documented function `status_t _Reserved_BufferIO_0' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:321: Warning: documented function `status_t _Reserved_BufferIO_1' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:326: Warning: documented function `status_t _Reserved_BufferIO_2' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:331: Warning: documented function `status_t _Reserved_BufferIO_3' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/BufferIO.cpp:336: Warning: documented function `status_t _Reserved_BufferIO_4' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Event.cpp:24: Warning: documented function `SEvent' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Event.cpp:29: Warning: documented function `~SEvent' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Event.cpp:34: Warning: no matching class member found for
+  status_t InitCheck() const
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Event.cpp:39: Warning: no matching class member found for
+  void Shutdown()
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Event.cpp:47: Warning: no matching class member found for
+  status_t Wait(uint32_t flags, nsecs_t timeout)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Event.cpp:76: Warning: documented function `int32_t FireAll' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Event.cpp:85: Warning: documented function `int32_t Fire' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperBeOS.cpp:154: Warning: no matching class member found for
+  status_t Loop()
+Possible candidates:
+  static status_t SLooper::Loop(bool isMain)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperBeOS.cpp:524: Warning: no matching class member found for
+  sptr< IBinder > _GetRootObject(thread_id id, team_id team)
+Possible candidates:
+  sptr< IBinder > SLooper::_GetRootObject(SysHandle id, team_id team)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperBeOS.cpp:552: Warning: documented function `status_t SetRootObject' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperBeOS.cpp:579: Warning: documented function `void SetRootObject' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperBeOS.cpp:586: Warning: documented function `sptr< IBinder > GetRootObject' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperBeOS.cpp:593: Warning: documented function `void _KillProcess' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperLinux.cpp:357: Warning: documented function `status_t _EnterLoop' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperLinux.cpp:517: Warning: documented function `sptr< IBinder > _RetrieveContext' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:339: Warning: documented function `status_t _SpawnTransactionLooper' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:372: Warning: documented function `status_t _EnterTransactionLoop' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:393: Warning: documented function `status_t _EnterLoop' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:400: Warning: no matching class member found for
+  status_t Loop()
+Possible candidates:
+  static status_t SLooper::Loop(bool isMain)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:457: Warning: documented function `void SetRootObject' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:472: Warning: documented function `sptr< IBinder > GetRootObject' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:486: Warning: documented function `sptr< IBinder > _RetrieveContext' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:576: Warning: documented function `void _KillProcess' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:581: Warning: documented function `int32_t _LoopTransactionSelf' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperPalmOS.cpp:716: Warning: documented function `status_t _HandleResponse' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperWindows.cpp:101: Warning: documented function `status_t _EnterLoop' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperWindows.cpp:144: Warning: no matching class member found for
+  status_t Loop()
+Possible candidates:
+  static status_t SLooper::Loop(bool isMain)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperWindows.cpp:162: Warning: documented function `void SetRootObject' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/LooperWindows.cpp:175: Warning: documented function `void _KillProcess' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Sequence.cpp:301: Warning: documented function `PPieceTable' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Sequence.cpp:307: Warning: documented function `PPieceTable' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Sequence.cpp:311: Warning: documented function `~PPieceTable' was not defined.
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Sequence.cpp:316: Warning: no matching class member found for
+  status_t Insert(uint32_t position, uint8_t const *src, uint32_t count)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Sequence.cpp:327: Warning: no matching class member found for
+  status_t Delete(uint32_t position, uint32_t count)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/support/Sequence.cpp:333: Warning: no matching class member found for
+  SSpan ItemsAt(uint32_t position, uint32_t count)
+/home/jparks/src/open-source/openbinder/libraries/libbinder/xml/XML2ValueParser.cpp:331: Warning: no matching class member found for
+  status_t ParseSignedInteger(const SString &from, int64_t maximum, int64_t *val)
+Possible candidates:
+  static status_t BXML2ValueCreator::ParseSignedInteger(const BNS(palmos::support::) SString &from, int64_t maximum, int64_t *val)
+/home/jparks/src/open-source/openbinder/headers/support/StringUtils.h:49: Warning: Found unknown command `\0'
+/home/jparks/src/open-source/openbinder/headers/SysThread.h:237: Warning: argument `outThtread' of command @param is not found in the argument list of SysThreadCreate(SysThreadGroupHandle group, const char *name, uint8_t priority, uint32_t stackSize, SysThreadEnterFunc *func, void *argument, SysHandle *outThread)
+/home/jparks/src/open-source/openbinder/headers/SysThread.h:237: Warning: The following parameters of SysThreadCreate(SysThreadGroupHandle group, const char *name, uint8_t priority, uint32_t stackSize, SysThreadEnterFunc *func, void *argument, SysHandle *outThread) are not documented:
+  parameter outThread
+
+/home/jparks/src/open-source/openbinder/headers/SysThread.h:218: Warning: argument `outThtread' of command @param is not found in the argument list of SysThreadCreateEZ(const char *name, SysThreadEnterFunc *func, void *argument, SysHandle *outThread)
+/home/jparks/src/open-source/openbinder/headers/SysThread.h:218: Warning: The following parameters of SysThreadCreateEZ(const char *name, SysThreadEnterFunc *func, void *argument, SysHandle *outThread) are not documented:
+  parameter outThread
+
+/home/jparks/src/open-source/openbinder/headers/SysThread.h:237: Warning: argument `outThtread' of command @param is not found in the argument list of SysThreadCreate(SysThreadGroupHandle group, const char *name, uint8_t priority, uint32_t stackSize, SysThreadEnterFunc *func, void *argument, SysHandle *outThread)
+/home/jparks/src/open-source/openbinder/headers/SysThread.h:237: Warning: The following parameters of SysThreadCreate(SysThreadGroupHandle group, const char *name, uint8_t priority, uint32_t stackSize, SysThreadEnterFunc *func, void *argument, SysHandle *outThread) are not documented:
+  parameter outThread
+
+/home/jparks/src/open-source/openbinder/build/headers/support/ICatalog.h:52: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/headers/support/URL.h:41: Warning: argument `escape_all' of command @param is not found in the argument list of SUrl::SUrl(const SUrl &)
+/home/jparks/src/open-source/openbinder/docs/Contents.h:16: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/docs/Contents.h:68: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/docs/ToDo.h:19: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/APIConventions.h:12: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/APIConventions.h:299: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/APIConventions.h:301: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/APIConventions.h:397: Warning: unable to resolve reference to `SupportFAQ' for \ref command
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/APIConventions.h:532: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/APIConventions.h:553: Warning: unable to resolve link to `http://www.stack.nl/~dimitri/doxygen/' for \link command
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/APIConventions.h:556: Warning: unable to resolve link to `http://www.stack.nl/~dimitri/doxygen/manual.html' for \link command
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderDocs.h:11: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderDocs.h:134: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderKit.h:11: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderKit.h:210: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderKit.h:218: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderKit.h:396: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderKit.h:430: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderRecipes.h:278: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderRecipes.h:291: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderRecipes.h:434: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderRecipes.h:471: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderRecipes.h:477: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderRecipes.h:478: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:16: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:120: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:120: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:163: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:169: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:204: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:305: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:333: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:345: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:360: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:406: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:530: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:573: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:631: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:638: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:815: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:826: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:947: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:1063: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:1070: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:1257: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:1343: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:1555: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderShell.h:1576: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:39: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:66: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:80: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:94: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:95: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:185: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:352: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:405: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:417: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/BinderThreading.h:418: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/DataModel.h:58: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/DataModel.h:59: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/DataModel.h:91: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/DataModel.h:346: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/DataModel.h:346: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/DataModel.h:365: Warning: unable to resolve reference to `DataManager' for \ref command
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/DataModel.h:461: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/DataModel.h:530: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/DataModel.h:536: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/EnvironmentVars.h:8: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/EnvironmentVars.h:33: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/EnvironmentVars.h:163: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/EnvironmentVars.h:198: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/IPCMechanism.h:320: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/ProcessModel.h:98: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SAtomDebugging.h:10: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SAtomDebugging.h:77: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SAtomDebugging.h:78: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SAtomDebugging.h:270: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SAtomDebugging.h:283: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SAtomDebugging.h:375: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SHandlerPatterns.h:20: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SHandlerPatterns.h:155: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SHandlerPatterns.h:156: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/StorageKit.h:8: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/StorageKit.h:8: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SupportKit.h:127: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SupportKit.h:128: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SupportKit.h:190: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SupportKit.h:264: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SupportKit.h:282: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SupportKit.h:283: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/libraries/libbinder/docs/SupportKit.h:335: Warning: Unsupported symbol &mdash; found
+/home/jparks/src/open-source/openbinder/headers/support/Errors.h:69: Warning: target sysErrNone of \copydoc command not found
+/home/jparks/src/open-source/openbinder/headers/support/Errors.h:70: Warning: target sysErrNone of \copydoc command not found
+/home/jparks/src/open-source/openbinder/headers/SysThread.h:26: Warning: unable to resolve reference to `CoreEventMgr' for \ref command

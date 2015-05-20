@@ -1,0 +1,79 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+import <support/IProcess.idl>
+
+namespace palmos {
+namespace support {
+
+interface INode
+
+//!	Simple interface for dynamically instantiating components into processes.
+/*!	This is a very basic interface that is used by SContext to give smooved
+	(or another system entity) the ability to implement policies for how
+	components are instantiated into processes
+	
+	SContext normally finds the implementation of this interface in the
+	namespace at /processes, and the object there should normally also
+	implement the INode, IIterable, and ICatalog APIs so it can behave
+	like a normal directory.
+	
+	See @ref BinderProcessModel for more information.
+	
+	@ingroup CoreSupportBinder
+*/
+interface IProcessManager
+{
+methods:
+
+	//!	Perform component instantiation in remote process, if needed.
+	/*!	@param[in]	context			Context (root of namespace) for this component to run in.
+		@param[in]	component		Name of the component to instantiate.  Unlike SContext::New(),
+									this can @em not be a complex mapping of name and arguments.
+		@param[in]	args			Arguments to pass to component.
+		@param[in]	flags			Behavior modification, as per SContext::New().
+		@param[in]	caller			Which process the caller is/will use.
+		@param[out]	componentInfo	Information from package manager about @a component.
+		@param[out]	status			Error code or B_OK.
+		
+		@return Non-NULL if a new instance of the component was created in a
+		different process.  NULL if there was an error or the component should
+		be created in @a caller (you can use @a status to distinguish between
+		the two).
+		
+		This method is called by SContext::New() before it tries to instantiate
+		the requested component in its local process.  This gives the process
+		manager a chance to decide how the instantiation should proceed, based
+		on whatever policies it wants to apply -- for example, if there is a
+		dedicated process for certain kinds of components, it can always instantiate
+		them there instead.
+		
+		If the process manager decides the component should be instantiated in
+		@a caller, it should always return NULL since this will be more efficient
+		than transfering the object reference through itself.  Note that SContext
+		is free at this point to cache this information, so that it doesn't have
+		to call this method if it later needs to make another instance of the same
+		component in the same process.
+		
+		The @a flags are as defined on SContext, and the process manager should
+		try to respect any passed in, but is not required to.
+	*/
+	IBinder				NewIfRemote(INode context,
+									SString component,
+									SValue args,
+									uint32_t flags,
+									IProcess caller,
+									[out]SValue componentInfo,
+									[optional out]status_t status);
+}
+
+} }	// namespace palmos::support

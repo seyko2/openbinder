@@ -1,0 +1,40 @@
+###############################################################################
+#
+# Copyright (c) 2001-2003 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.0
+#
+###############################################################################
+
+# Jamfile to build printf
+PSSubDir TOP components tools commands printf ;
+
+# Define local sources
+local sources =
+	PrintfCommand.cpp
+	;
+
+# Build the PRC
+local ENTRY = ComponentLibMain ;
+local PRCCREATOR = prtf ;
+local PRCTYPE = libr ;
+PDBNAME on printf.prc = printf ;
+
+Prc printf.prc :
+	$(sources)
+	printf.xrd
+
+	SystemGlue$(SUFLIB)
+
+	CPMLib$(SUFSTUB)
+	DALLib$(SUFSTUB)
+	SystemLib$(SUFSTUB)
+	libbinder$(SUFSTUB)
+	;
+
+
+
+# Package org.openbinder.tools.commands.Printf :
+#	;

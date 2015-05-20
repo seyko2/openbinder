@@ -1,0 +1,31 @@
+###############################################################################
+#
+# Copyright (c) 2001-2004 PalmSource, Inc. All rights reserved.
+#
+# File: Jamfile
+#
+# Release: Palm OS 6.1
+#
+###############################################################################
+
+PSSubDir TOP components tests binder_fork_bomb ;
+
+# make the bomber command
+Main bomber :
+	bomber.cpp
+	;
+LinkLibraries bomber : 
+	libbinder$(SUFSHL)
+	libbinder_glue$(SUFLIB)
+	;
+
+
+# make the bsh command
+local PKGNAME = org.openbinder.tests.binder_fork_bomb ;
+
+Component binder_fork_bomb :
+	bomb_host.cpp
+
+	libbinder$(SUFSHL)
+	;
+

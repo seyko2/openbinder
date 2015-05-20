@@ -1,0 +1,138 @@
+supportBootstrapSources:= \
+	support/Atom.cpp \
+	support/Autobinder.cpp \
+	support/Binder.cpp \
+	support/Bitfield.cpp \
+	support/ByteStream.cpp \
+	support/CallStack.cpp \
+	support/Context.cpp \
+	support/Debug.cpp \
+	support/DebugLock.cpp \
+	support/Flattenable.cpp \
+	support/KernelStreams.cpp \
+	support/List.cpp \
+	support/Locker.cpp \
+	support/MemoryStore.cpp \
+	support/NullStreams.cpp \
+	support/SortedVector.cpp \
+	support/Parcel.cpp \
+	support/SharedBuffer.cpp \
+	support/SignalHandler.cpp \
+	support/Static.cpp \
+	support/Storage.cpp \
+	support/String.cpp \
+	support/StringIO.cpp \
+	support/StringUtils.cpp \
+	support/SupportUtils.cpp \
+	support/Swap.cpp \
+	support/TextStream.cpp \
+	support/Thread.cpp \
+	support/Threads.cpp \
+	support/Value.cpp \
+	support/ValueMap.cpp \
+	support/Vector.cpp \
+	support/VectorIO.cpp \
+	support/LinuxCompat.cpp \
+	support/qsort_r.c \
+	support/SysSemaphores.cpp \
+	support/TSD.cpp \
+	support/strlcat.c \
+	support/strlcpy.c \
+	support/timers.cpp
+
+# Removed:
+#	support/TextCoder.cpp \
+
+
+supportSources:= \
+	support/Atom.cpp \
+	support/Autobinder.cpp \
+	support/Binder.cpp \
+	support/Bitfield.cpp \
+	support/ByteStream.cpp \
+	support/CallStack.cpp \
+	support/ConditionVariable.cpp \
+	support/Context.cpp \
+	support/Datum.cpp \
+	support/DatumLord.cpp \
+	support/Debug.cpp \
+	support/DebugLock.cpp \
+	support/EventFlag.cpp \
+	support/Flattenable.cpp \
+	support/GenericCache.cpp \
+	support/Handler.cpp \
+	support/HashTable.cpp \
+	support/IntrusiveProfiler.cpp \
+	support/IOSStream.cpp \
+	support/Iterator.cpp \
+	support/KeyID.cpp \
+	support/List.cpp \
+	support/Locker.cpp \
+	support/Looper.cpp \
+	support/LooperLinux.cpp \
+	support/Memory.cpp \
+	support/MemoryStore.cpp \
+	support/Message.cpp \
+	support/MessageList.cpp \
+	support/Node.cpp \
+	support/NullStreams.cpp \
+	support/Observer.cpp \
+	support/Package.cpp \
+	support/Parcel.cpp \
+	support/Pipe.cpp \
+	support/Process.cpp \
+	support/ProfileIPC.cpp \
+	support/RBinder.cpp \
+	support/RegExp.cpp \
+	support/Selector.cpp \
+	support/SharedBuffer.cpp \
+	support/SignalHandler.cpp \
+	support/SortedVector.cpp \
+	support/Static.cpp \
+	support/Storage.cpp \
+	support/StopWatch.cpp \
+	support/String.cpp \
+	support/StringIO.cpp \
+	support/StringTokenizer.cpp \
+	support/StringUtils.cpp \
+	support/SupportUtils.cpp \
+	support/Swap.cpp \
+	support/TextStream.cpp \
+	support/Thread.cpp \
+	support/Threads.cpp \
+	support/TokenSource.cpp \
+	support/URL.cpp \
+	support/Value.cpp \
+	support/ValueMap.cpp \
+	support/Vector.cpp \
+	support/VectorIO.cpp \
+	support/CatalogMirror.cpp \
+	support/Catalog.cpp \
+	support/LinuxCompat.cpp \
+	support/KernelStreams.cpp \
+	support/qsort_r.c \
+	support/SysSemaphores.cpp \
+	support/TSD.cpp \
+	support/strlcat.c \
+	support/strlcpy.c \
+	support/timers.cpp
+
+# Removed:
+#	support/TextCoder.cpp \
+
+supportIDLs:= \
+	support/ICatalogPermissions.idl \
+	support/ICatalog.idl \
+	support/IDatum.idl \
+	support/IIterable.idl \
+	support/IIterator.idl \
+	support/INib.idl \
+	support/INode.idl \
+	support/INodeObserver.idl \
+	support/IProcess.idl \
+	support/IProcessManager.idl \
+	support/IRandomIterator.idl \
+	support/ISelector.idl \
+	support/ITable.idl \
+	support/IUuid.idl \
+	support/IVirtualMachine.idl

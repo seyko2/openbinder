@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2005 Palmsource, Inc.
+ * 
+ * This software is licensed as described in the file LICENSE, which
+ * you should have received as part of this distribution. The terms
+ * are also available at http://www.openbinder.org/license.html.
+ * 
+ * This software consists of voluntary contributions made by many
+ * individuals. For the exact contribution history, see the revision
+ * history and logs, available at http://www.openbinder.org
+ */
+
+/*!	@file support/ISelector.idl
+	@ingroup CoreSupportBinder
+	@brief Watch data change.
+*/
+
+namespace palmos {
+namespace support {
+
+//!	Watch data change.
+/*!	@ingroup CoreSupportBinder */
+interface ISelector
+{
+methods:
+	status_t Register(SValue key, IBinder binder, SValue property, [optional]uint32_t flags);
+	status_t Unregister(SValue key, IBinder binder, SValue property, [optional]uint32_t flags);
+
+properties:
+	SValue value;
+}
+
+/*! @} */
+
+} }	// namespace palmos::support

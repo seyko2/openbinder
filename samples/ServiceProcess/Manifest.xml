@@ -1,0 +1,13 @@
+<manifest>
+	<component>
+		<process prefer="package" />
+		<interface name="org.openbinder.support.INode" />
+		<interface name="org.openbinder.support.IIterable" />
+		<interface name="org.openbinder.support.ICatalog" />
+	</component>
+	<component local="Command">
+		<process prefer="package" />
+		<interface name="org.openbinder.app.ICommand" />
+		<property id="bin" type="string">service_command</property>
+	</component>
+</manifest>
