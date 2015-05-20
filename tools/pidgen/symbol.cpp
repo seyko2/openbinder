@@ -35,7 +35,7 @@ IDLSymbol::~IDLSymbol(void)
 {
 	#ifdef SYMDEBUG
 		//bout << "<----- symbol.cpp -----> ~IDLSymbol called - let's all go to hell!\n";
-	#endif SYMDEBUG
+	#endif // SYMDEBUG
 // nothing is done here since m_type is handled by sptr reference counting
 } // destructor
 

@@ -150,7 +150,7 @@ copy_elements(InterfaceRec* dest, InterfaceRec* source)
 
 %token <_anything> J_USING
 %token <_anything> J_NAMESPACE
-%token <_anything> J_TYPEDEF
+// %token <_anything> J_TYPEDEF
 %token <_anything> J_INTERFACE
 %token <_anything> J_SEMICOLON
 %token <_anything> J_LPAREN

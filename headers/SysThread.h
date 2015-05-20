@@ -131,7 +131,7 @@ status_t	SysThreadRemoveExitCallback(SysThreadExitCallbackID iThreadCallbackId);
 //@{
 
 //!	The value to use when initializing a SysCriticalSectionType.
-#define sysCriticalSectionInitializer NULL
+#define sysCriticalSectionInitializer 0
 typedef void * SysCriticalSectionType;
 
 #if (TARGET_HOST == TARGET_HOST_WIN32)

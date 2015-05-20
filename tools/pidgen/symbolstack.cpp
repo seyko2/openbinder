@@ -46,7 +46,7 @@ StackNode::operator = (const StackNode &node)
 			<< this->getScopeName() << endl;
 		bout << "<----- symbolstack.cpp ----->		about to be set to -> "
 			<< node.scopename << endl;
-	#endif SYMDEBUG
+	#endif // SYMDEBUG
 
 	scopetable.SetTo(node.scopetable);
 	scopename=node.scopename; 
@@ -66,7 +66,7 @@ StackNode::setScopeName(const SString newname)
 	#ifdef SYMDEBUG
 		bout << "<----- symbolstack.cpp -----> attn! scopename just got reset to " << newname << endl;
 		bout << "<----- symbolstack.cpp ----->		be careful! scopename should rarely be reset " << endl;
-	#endif SYMDEBUG
+	#endif // SYMDEBUG
 	
 	return B_OK;
 }
