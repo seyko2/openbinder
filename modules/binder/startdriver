@@ -1,4 +1,5 @@
 # you almost certainly want to run this with sudo
+make modules_install
 depmod
 modprobe binderdev
 echo lsmod | grep binder

@@ -725,8 +725,8 @@ binder_thread_Write(binder_thread_t *that, void *_buffer, int _size, signed long
 				iobuffer_mark_consumed(&io);
 			} break;
 			case bcSTOP_SELF: {
-				DPRINTF(5, (KERN_WARNING "bcSTOP_SELF\n"));
 				int now;
+				DPRINTF(5, (KERN_WARNING "bcSTOP_SELF\n"));
 				if (iobuffer_read_u32(&io, &now)) goto finished;
 				if (BND_ATTEMPT_ACQUIRE(binder_proc, that->m_team, STRONG, that)) {
 					binder_proc_Stop(that->m_team, now ? TRUE : FALSE);

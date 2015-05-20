@@ -145,19 +145,20 @@ binder_transaction_ConvertFromNodes(binder_transaction_t *that, binder_proc_t *t
 
 	if (that->offsets_size > 0) {
 		// This function is called after references have been acquired.
+		struct flat_binder_object* flat;
 		BND_ASSERT((that->flags&tfReferenced) != 0, "ConvertToNodes() not called!");
 	
 		ptr = binder_transaction_Data(that);
 		off = binder_transaction_Offsets(that); //(const size_t*)(ptr + INT_ALIGN(that->data_size));
 		offEnd = off + (that->offsets_size/sizeof(size_t));
-		struct flat_binder_object* flat;
 		
 		BND_FLUSH_CACHE(  binder_transaction_UserData(that),
 		                  binder_transaction_UserOffsets(that) +
 		                  binder_transaction_OffsetsSize(that) );
 		while (off < offEnd) {
+			binder_node_t *n;
 			flat = (struct flat_binder_object*)(ptr + *off++);
-			binder_node_t *n = flat->node;
+			n = flat->node;
 			if (flat->type == kPackedLargeBinderNodeType) {
 				if (!n) {
 					flat->type = kPackedLargeBinderType;

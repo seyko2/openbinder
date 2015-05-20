@@ -411,7 +411,7 @@ static int __init init_binder(void)
 		goto free_pools;
 	}
 
-	result = alloc_chrdev_region(&dev, BINDER_MINOR, BINDER_NUM_DEVS, binder_name);
+	result = alloc_chrdev_region(&dev, BINDER_MINOR, BINDER_NUM_DEVS, (char*)binder_name);
 	if (result < 0) {
 		printk(KERN_WARNING "init_binder: alloc_chrdev_region() failed: %d\n", result);
 		return result;
