@@ -90,8 +90,8 @@ typedef struct binder_proc {
 #define SPAWNING_BIT 0
 #define DO_SPAWN_BIT 1
 	struct semaphore	m_lock;
-	spinlock_t          m_spin_lock;
 	struct semaphore	m_map_pool_lock;
+	spinlock_t          m_spin_lock;
 	u32			m_state;
 	struct binder_thread *	m_threads;
 	struct list_head m_waitStack;

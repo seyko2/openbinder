@@ -479,8 +479,12 @@ binder_transaction_CopyTransactionData(binder_transaction_t *that, binder_proc_t
 	DPRINTF(0, (KERN_WARNING "%s(%p, %p)\n", __func__, that, recipient));
 	// Do we need to ensure that->map contains NULL?  What do we do if it doesn't?
 	if(tSize >= binder_transaction_print_size) {
+    #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 		printk(KERN_WARNING "%s-%d: binder_transaction_CopyTransactionData size %d (%d,%d) to %p, reply=%d\n",
 			   current->comm, current->pid, tSize, that->data_size, that->offsets_size, recipient, binder_transaction_IsReply(that));
+    #else
+		printk(KERN_WARNING "binder_transaction_CopyTransactionData\n");
+    #endif
 	}
 	if (binder_transaction_IsAcquireReply(that)) {
 		// No data to copy
@@ -488,8 +492,12 @@ binder_transaction_CopyTransactionData(binder_transaction_t *that, binder_proc_t
 	} else {
 	// if (tSize >= sizeof(that->data)) {
 		if(tSize >= binder_transaction_fail_size) {
+    #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 			printk(KERN_ERR "%s-%d: binder_transaction_CopyTransactionData transaction size too big, size %d (%d,%d) to %p\n",
 				   current->comm, current->pid, tSize, that->data_size, that->offsets_size, recipient);
+    #else
+			printk(KERN_ERR "binder_transaction_CopyTransactionData transaction size too big\n");
+    #endif
 			return result;
 		}
 		that->map = binder_proc_AllocateTransactionBuffer(recipient, tSize);

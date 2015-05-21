@@ -20,15 +20,19 @@
 #define BINDER_DEFS_H
 
 #include <asm/atomic.h>
-#include <asm/semaphore.h>
 #include <linux/delay.h>
 #include <linux/types.h>
 #include <linux/slab.h>
-
 #include <linux/version.h>
 #include <linux/kobject.h>
 #include <linux/fs.h>
 #include <linux/cdev.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
+#include <asm/semaphore.h>
+#else
+#include <linux/semaphore.h>
+#endif
+
 #include <support_p/binder_module.h>
 
 #if defined(CONFIG_ARM)
@@ -38,6 +42,10 @@
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,12)
 #define assert_spin_locked(x)
+#endif
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,22)
+#define kmem_cache_t struct kmem_cache
 #endif
 
 extern kmem_cache_t *transaction_cache;
@@ -312,11 +320,16 @@ static __inline__  bool cmpxchg32(volatile int *atom, int *value, int newValue)
 
 #endif
 
-#define BND_LOCK(x) do { down(&(x)); \
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
+ #define BND_LOCK(x) do { down(&(x)); \
 	BND_ASSERT(atomic_read(&((x).count)) <= 0, "BND_LOCK() lock still free"); } while (0)
-#define BND_UNLOCK(x) do { \
+ #define BND_UNLOCK(x) do { \
 	BND_ASSERT(atomic_read(&((x).count)) <= 0, "BND_UNLOCK() lock already free"); \
 	up(&(x)); } while (0)
+#else
+ #define BND_LOCK(x) do { down(&(x)); } while (0)
+ #define BND_UNLOCK(x) do { up(&(x)); } while (0)
+#endif
 
 #if defined(CONFIG_ARM)
 // __cpuc_flush_user_range is arm specific, but the generic function need a

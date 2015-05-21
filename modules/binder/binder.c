@@ -48,12 +48,18 @@ MODULE_DESCRIPTION("Capability-based IPC");
 #define CLASS_SIMPLE_DEVICE_ADD class_simple_device_add
 #define CLASS_SIMPLE_DESTROY class_simple_destroy
 #define CLASS_SIMPLE_DEVICE_REMOVE class_simple_device_remove
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 #define CLASS_SIMPLE class
 #define CLASS_SIMPLE_CREATE class_create
 #define CLASS_SIMPLE_DEVICE_ADD class_device_create
 #define CLASS_SIMPLE_DESTROY class_destroy
 #define CLASS_SIMPLE_DEVICE_REMOVE(a) class_device_destroy(binder_class, a)
+#else
+#define CLASS_SIMPLE class
+#define CLASS_SIMPLE_CREATE class_create
+#define CLASS_SIMPLE_DEVICE_ADD device_create
+#define CLASS_SIMPLE_DESTROY class_destroy
+#define CLASS_SIMPLE_DEVICE_REMOVE(a) device_destroy(binder_class, a)
 #endif
 
 /*
@@ -105,13 +111,23 @@ static struct file_operations binder_fops = {
 
 static void binder_vma_open(struct vm_area_struct * area);
 static void binder_vma_close(struct vm_area_struct * area);
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 static struct page * binder_vma_nopage(struct vm_area_struct * area, unsigned long address, int *type);
+#endif
 
 static struct vm_operations_struct binder_vm_ops = {
 	.open = binder_vma_open,
 	.close = binder_vma_close,
+
+    #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 	.nopage = binder_vma_nopage
+    #endif
 };
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,24)
+#define kmem_cache_t struct kmem_cache
+#endif
 
 kmem_cache_t *transaction_cache = NULL;
 kmem_cache_t *thread_cache = NULL;
@@ -271,6 +287,7 @@ typedef struct dbg_mem_header_s {
 static dbg_mem_header_t *dbg_active_memory;
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,23)
 void generic_slab_xtor(void *p, kmem_cache_t *slab, unsigned long flags)
 {
 #if BND_MEM_DEBUG
@@ -331,6 +348,7 @@ void range_map_slab_xtor(void *p, kmem_cache_t *slab, unsigned long flags)
 	DIPRINTF(10, (KERN_WARNING "%s(%p, %p, %08lx)\n", __func__, p, slab, flags));
 	generic_slab_xtor(p, slab, flags);
 }
+#endif
 
 static int /*__init*/ create_pools(void)
 {
@@ -359,17 +377,17 @@ static int /*__init*/ create_pools(void)
 	range_map_cache = kmem_cache_create("range_map_t", sizeof(range_map_t)+pad, 0, cache_flags, range_map_slab_xtor, range_map_slab_xtor);
 	if (!range_map_cache) return -ENOMEM;
 #else
-	transaction_cache = kmem_cache_create("binder_transaction_t", sizeof(binder_transaction_t)+pad, 0, cache_flags, transaction_slab_xtor);
+	transaction_cache = kmem_cache_create("binder_transaction_t", sizeof(binder_transaction_t)+pad, 0, cache_flags, NULL);
 	if (!transaction_cache) return -ENOMEM;
-	thread_cache = kmem_cache_create("binder_thread_t", sizeof(binder_thread_t)+pad, 0, cache_flags, thread_slab_xtor);
+	thread_cache = kmem_cache_create("binder_thread_t", sizeof(binder_thread_t)+pad, 0, cache_flags, NULL);
 	if (!thread_cache) return -ENOMEM;
-	node_cache = kmem_cache_create("binder_node_t", sizeof(binder_node_t)+pad, 0, cache_flags, node_slab_xtor);
+	node_cache = kmem_cache_create("binder_node_t", sizeof(binder_node_t)+pad, 0, cache_flags, NULL);
 	if (!node_cache) return -ENOMEM;
-	local_mapping_cache = kmem_cache_create("local_mapping_t", sizeof(local_mapping_t)+pad, 0, cache_flags, local_mapping_slab_xtor);
+	local_mapping_cache = kmem_cache_create("local_mapping_t", sizeof(local_mapping_t)+pad, 0, cache_flags, NULL);
 	if (!local_mapping_cache) return -ENOMEM;
-	reverse_mapping_cache = kmem_cache_create("reverse_mapping_t", sizeof(reverse_mapping_t)+pad, 0, cache_flags, reverse_mapping_slab_xtor);
+	reverse_mapping_cache = kmem_cache_create("reverse_mapping_t", sizeof(reverse_mapping_t)+pad, 0, cache_flags, NULL);
 	if (!reverse_mapping_cache) return -ENOMEM;
-	range_map_cache = kmem_cache_create("range_map_t", sizeof(range_map_t)+pad, 0, cache_flags, range_map_slab_xtor);
+	range_map_cache = kmem_cache_create("range_map_t", sizeof(range_map_t)+pad, 0, cache_flags, NULL);
 	if (!range_map_cache) return -ENOMEM;
 #endif
 
@@ -428,7 +446,9 @@ static int destroy_pools(void)
 
 static int __init init_binder(void)
 {
+    #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 	struct class_device *simple;
+    #endif
 	int result;
 	dev_t dev = 0;
 
@@ -460,20 +480,27 @@ static int __init init_binder(void)
 		goto unregister_class;
 	}
 
-	simple = CLASS_SIMPLE_DEVICE_ADD(binder_class,
+    #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
+	simple = 
+    #endif
+	CLASS_SIMPLE_DEVICE_ADD(binder_class,
 	    #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,15)
 		NULL,
 	    #endif
 	     dev, NULL, "%s", BINDER_NAME);
 
+    #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 	if (IS_ERR(simple)) {
 		result = PTR_ERR(simple);
 		goto unadd_cdev;
 	}
 
 	goto exit0;
+    #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 unadd_cdev:
+#endif
 	cdev_del(&binder_device.cdev);
 unregister_class:
 	CLASS_SIMPLE_DESTROY(binder_class);
@@ -481,7 +508,9 @@ unalloc:
 	unregister_chrdev_region(binder_major, BINDER_NUM_DEVS);
 free_pools:
 	destroy_pools();
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 exit0:
+#endif
 	return result;
 }
 
@@ -645,6 +674,7 @@ static void binder_vma_close(struct vm_area_struct * area)
 	DPRINTF(5, (KERN_WARNING "binder_vma_close() for %08x\n", (unsigned int)area->vm_private_data));
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 static struct page * binder_vma_nopage(struct vm_area_struct * area, unsigned long address, int *type)
 {
 	struct page *pageptr = NULL;
@@ -661,6 +691,7 @@ static struct page * binder_vma_nopage(struct vm_area_struct * area, unsigned lo
 	// return the page
 	return pageptr;
 }
+#endif
 
 void my_dump_stack(void) { printk(KERN_WARNING ""); dump_stack(); }
 

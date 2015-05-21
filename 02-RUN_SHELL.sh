@@ -1,15 +1,10 @@
 #!/bin/sh
 
 BINDER_PRESENT=$(lsmod | grep binderdev)
-[ -z "$BINDER_PRESENT" ] && {
-    modprobe binderdev
-    BINDER_PRESENT=$(lsmod | grep binderdev)
-}
 
 [ -z "$BINDER_PRESENT" ] && {
-    echo "A binderdev kernel module not found."
-    echo "Please go to the modules/binder and make it."
-    exit
+    echo "Warning: a binderdev kernel module not found."
+    sleep 2
 }
 
 # make LOCK_DEBUG=-1 runshell

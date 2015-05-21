@@ -7,7 +7,8 @@ ifneq ($(KERNELRELEASE),)
 	ifeq ($(strip $(CUSTOM_CFLAGS)),)
 	CUSTOM_CFLAGS:= -I $(PWD)/../../headers
 	endif
-	EXTRA_CFLAGS += $(CUSTOM_CFLAGS) -DTARGET_HOST=TARGET_HOST_LINUX -Wno-multichar -Wno-undef
+	EXTRA_CFLAGS += $(CUSTOM_CFLAGS) -DTARGET_HOST=TARGET_HOST_LINUX
+	EXTRA_CFLAGS += -Wno-multichar -Wno-undef
 
 else
 

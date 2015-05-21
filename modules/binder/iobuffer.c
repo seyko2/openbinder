@@ -35,32 +35,36 @@ int iobuffer_init(iobuffer_t *that, unsigned long base, int size, int consumed) 
 
 int iobuffer_read_raw(iobuffer_t *that, void *data, int size)
 {
+	int res;
 	if ((that->m_size-that->m_offs) < size) return -EFAULT;
-	copy_from_user(data, (void*)(that->m_base+that->m_offs), size);
+	res = copy_from_user(data, (void*)(that->m_base+that->m_offs), size);
 	that->m_offs += size;
 	return 0;
 }
 
 int iobuffer_read_u32(iobuffer_t *that, u32 *data)
 {
+	int res;
 	if ((that->m_size-that->m_offs) < sizeof(u32)) return -EFAULT;
-	copy_from_user(data, (void*)(that->m_base+that->m_offs), sizeof(u32));
+	res= copy_from_user(data, (void*)(that->m_base+that->m_offs), sizeof(u32));
 	that->m_offs += sizeof(u32);
 	return 0;
 }
 
 int iobuffer_read_void(iobuffer_t *that, void **data)
 {
+	int res;
 	if ((that->m_size-that->m_offs) < sizeof(void*)) return -EFAULT;
-	copy_from_user(data, (void*)(that->m_base+that->m_offs), sizeof(void*));
+	res = copy_from_user(data, (void*)(that->m_base+that->m_offs), sizeof(void*));
 	that->m_offs += sizeof(void*);
 	return 0;
 }
 
 int iobuffer_write_raw(iobuffer_t *that, const void *data, int size)
 {
+	int res;
 	if ((that->m_size-that->m_offs) < size) return -EFAULT;
-	copy_to_user((void*)(that->m_base+that->m_offs), data, size);
+	res = copy_to_user((void*)(that->m_base+that->m_offs), data, size);
 	that->m_offs += size;
 	return 0;
 }

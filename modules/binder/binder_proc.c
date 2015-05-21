@@ -85,8 +85,10 @@ static void set_thread_priority(pid_t thread, int priority)
     #else
 	// FIXME
     #endif
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
     set_user_nice(find_task_by_pid(thread), nice);
+#else
+	// FIXME
 #endif
 }
 
@@ -1573,7 +1575,9 @@ binder_proc_WaitForRequest(binder_proc_t *that, binder_thread_t* who, binder_tra
 	DBLOCK((KERN_WARNING "WaitForRequest() going to lock %p in %d\n", that, binder_thread_Thid(who)));
 	BND_LOCK(that->m_lock);
 
+    #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 	BND_ASSERT(atomic_read(&that->m_lock.count) <= 0, "WaitForRequest() lock still free after BND_LOCK");
+    #endif
 	
 	if (who->m_isSpawned && who->m_firstLoop) {
 		/*	This is a new thread that is waiting for its first time. */
@@ -1838,10 +1842,14 @@ static range_map_t * binder_proc_free_map_alloc_l(binder_proc_t *that, size_t le
 {
 	bool large;
 	struct rb_node *n;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 	struct rb_node * (*rbstep)(struct rb_node *);
+#else
+	struct rb_node * (*rbstep)(const struct rb_node *);
+#endif
 	range_map_t *rm = NULL;
 	unsigned long avail;
-	
+
 	large = (length > LARGE_TRANSACTION ? TRUE : FALSE);
 	DPRINTF(5, (KERN_WARNING "%s(%p, %08x) large = %d\n", __func__, that, length, large));
 	n = large ? rb_last(&that->m_freeMap) : rb_first(&that->m_freeMap);

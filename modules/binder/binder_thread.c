@@ -26,6 +26,7 @@
 #include <stdarg.h>
 #include <asm/uaccess.h>
 #include <asm/bitops.h>
+#include <linux/sched.h>
 
 static void		binder_thread_Cleanup(binder_thread_t *that);
 
@@ -307,12 +308,14 @@ binder_thread_Control(binder_thread_t *that, unsigned int cmd, void *buffer)
 			if (size >= sizeof(binder_write_read_t)) {
 				binder_write_read_t bwr;
 				if (copy_from_user(&bwr, buffer, sizeof(bwr)) == 0) {
+					int rc;
 					DPRINTF(2, (KERN_WARNING " -- write %ld at %08lx\n -- read %ld at %08lx\n", bwr.write_size, bwr.write_buffer, bwr.read_size, bwr.read_buffer));
 					if (bwr.write_size > 0) {
 						result = binder_thread_Write(that, (void *)bwr.write_buffer, bwr.write_size, &bwr.write_consumed);
 						if (result < 0) {
+							int rc;
 							bwr.read_consumed = 0;
-							copy_to_user(buffer, &bwr, sizeof(bwr));
+							rc = copy_to_user(buffer, &bwr, sizeof(bwr));
 							goto getout;
 						}
 					}
@@ -324,11 +327,12 @@ binder_thread_Control(binder_thread_t *that, unsigned int cmd, void *buffer)
 							//if (result != -ERESTARTSYS) {
 								//bwr.read_size = result; // FIXME?
 							//}
-							copy_to_user(buffer, &bwr, sizeof(bwr));
+							int rc;
+							rc = copy_to_user(buffer, &bwr, sizeof(bwr));
 							goto getout;
 						}
 					}
-					copy_to_user(buffer, &bwr, sizeof(bwr));
+					rc = copy_to_user(buffer, &bwr, sizeof(bwr));
 					result = 0;
 				}
 			}
