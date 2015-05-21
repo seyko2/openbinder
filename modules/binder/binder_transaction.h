@@ -30,6 +30,7 @@ enum {
 	tfIsEvent		= 0x0200,
 	tfIsAcquireReply	= 0x0400,
 	tfIsDeadReply		= 0x0800,
+	tfIsFailedReply		= 0x0020,
 	tfIsFreePending		= 0x0040,
 	
 	tfAttemptAcquire	= 0x1000,
@@ -102,6 +103,7 @@ status_t				binder_transaction_CopyTransactionData(binder_transaction_t *that, s
 #define binder_transaction_IsEvent(that) ((that)->flags & tfIsEvent)
 #define binder_transaction_IsAcquireReply(that) ((that)->flags & tfIsAcquireReply)
 #define binder_transaction_IsDeadReply(that) ((that)->flags & tfIsDeadReply)
+#define binder_transaction_IsFailedReply(that) ((that)->flags & tfIsFailedReply)
 #define binder_transaction_IsAnyReply(that) ((that)->flags & (tfIsReply|tfIsAcquireReply|tfIsDeadReply))
 #define binder_transaction_IsFreePending(that) ((that)->flags & tfIsFreePending)
 #define binder_transaction_IsReferenced(that) ((that)->flags & tfReferenced)
@@ -111,6 +113,7 @@ status_t				binder_transaction_CopyTransactionData(binder_transaction_t *that, s
 #define binder_transaction_SetRootObject(that, f) { if (f) (that)->flags |= tfRootObject; else (that)->flags &= ~tfRootObject; }
 #define binder_transaction_SetReply(that, f) { if (f) (that)->flags |= tfIsReply; else (that)->flags &= ~tfIsReply; }
 #define binder_transaction_SetDeadReply(that, f) { if (f) (that)->flags |= tfIsDeadReply; else (that)->flags &= ~tfIsDeadReply; }
+#define binder_transaction_SetFailedReply(that, f) { if (f) (that)->flags |= tfIsFailedReply; else (that)->flags &= ~tfIsFailedReply; }
 #define binder_transaction_SetEvent(that, f) { if (f) (that)->flags |= tfIsEvent; else (that)->flags &= ~tfIsEvent; }
 #define binder_transaction_SetAcquireReply(that, f) { if (f) (that)->flags |= tfIsAcquireReply; else (that)->flags &= ~tfIsAcquireReply; }
 #define binder_transaction_SetFreePending(that, f) { if (f) (that)->flags |= tfIsFreePending; else (that)->flags &= ~tfIsFreePending; }

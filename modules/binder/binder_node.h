@@ -27,7 +27,7 @@ typedef struct binder_node {
 	atomic_t		m_secondaryRefs;
 	void *			m_ptr;
 	void *			m_cookie;
-	binder_proc_t *	m_team;
+	binder_proc_t *	m_home;
 } binder_node_t;
 
 int				binder_node_GlobalCount(void);
@@ -36,6 +36,14 @@ binder_node_t *	binder_node_init(binder_proc_t *team, void *ptr, void *cookie);
 void			binder_node_destroy(binder_node_t *that);
 				
 void			binder_node_Released(binder_node_t *that);
+
+// Return a new strong reference on the node's home team, or NULL
+// if the team no longer exists.  Be sure to release the reference
+// (via BND_RELEASE(binder_proc, team, STRONG, id)) if the return is non-NULL.
+binder_proc_t*  binder_node_AcquireHome(binder_node_t *that, const void *id);
+
+// Dispatch a transaction to the node's process.
+status_t 		binder_node_Send(binder_node_t *that, struct binder_transaction *t);
 
 BND_DECLARE_ACQUIRE_RELEASE(binder_node);
 // BND_DECLARE_FORCE_ACQUIRE(binder_node);
@@ -56,9 +64,7 @@ BND_DECLARE_ATTEMPT_ACQUIRE(binder_node);
 
 #define binder_node_Ptr(that)	((that)->m_ptr)
 #define binder_node_Cookie(that)	((that)->m_cookie)
-#define binder_node_Home(that)	((that)->m_team)
-#define binder_node_IsAlive(that)	(binder_proc_IsAlive((that)->m_team))
+#define binder_node_IsAlive(that)	(binder_proc_IsAlive((that)->m_home))
 #define binder_node_IsRoot(that)	((that)->m_isRoot)
-#define binder_node_Send(that, t)	binder_proc_Transact((that)->m_team, t)
 
 #endif // BINDER2_NODE_H

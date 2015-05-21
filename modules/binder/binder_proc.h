@@ -30,7 +30,8 @@
 // This "error" is returned by WaitForRequest() when a timed event
 // is scheduled to happen.
 enum {
-	REQUEST_EVENT_READY = 1
+	REQUEST_EVENT_READY = 1,
+	DEATH_NOTIFICATION_READY = 2
 };
 
 typedef struct descriptor {
@@ -61,12 +62,25 @@ typedef struct range_map {
 	struct binder_proc *team;
 } range_map_t;
 
+typedef struct death_notification {
+	atomic_t                ref_count;
+	struct hlist_node       observer;
+	struct hlist_node       observed_or_active;
+	void                   *cookie;
+	struct binder_proc     *observer_proc;
+	struct binder_proc     *observed_proc; // or NULL if already sent
+} death_notification_t;
+
 enum {
 	btEventInQueue	= 0x00000002,
 	btDying			= 0x00000004,
 	btDead			= 0x00000008,
 	btCleaned		= 0x00000010,
 	btFreed			= 0x00000020
+};
+
+enum {
+    WAKE_THREAD_FOR_PROCESS_DEATH = 1
 };
 
 typedef struct binder_proc {
@@ -82,6 +96,7 @@ typedef struct binder_proc {
 	struct binder_thread *	m_threads;
 	struct list_head m_waitStack;
 	int              m_waitStackCount;
+    u32              m_wakeThreadMask;
 	bigtime_t		m_wakeupTime;
 	s32			m_wakeupPriority;
 	struct timer_list  m_wakeupTimer;
@@ -112,6 +127,11 @@ typedef struct binder_proc {
 	struct rb_root		m_freeMap;
 	range_map_t		*m_pool;
 	size_t			m_pool_active;
+	struct hlist_head	m_incoming_death_notifications;
+	struct hlist_head	m_outgoing_death_notifications;
+	struct hlist_head	m_pending_death_notifications; // ready to be sent to user space
+	struct hlist_head	m_active_death_notifications; // already sent to user space
+	struct hlist_head	m_deleted_death_notifications;
 } binder_proc_t;
 
 
@@ -138,6 +158,8 @@ bool			binder_proc_AddThread(binder_proc_t *that, binder_thread_t *t);
 void			binder_proc_RemoveThread(binder_proc_t *that, struct binder_thread *t);
 
 status_t		binder_proc_WaitForRequest(binder_proc_t *that,	struct binder_thread* who, struct binder_transaction **t);
+
+void			binder_proc_GetPendingDeathNotifications(binder_proc_t *that, binder_thread_t *thread, iobuffer_t *io);
 
 /*	Call when a thread receives its bcREGISTER_LOOPER command. */
 void			binder_proc_StartLooper(binder_proc_t *that, bool driver_spawned);
@@ -188,6 +210,11 @@ void			binder_proc_ForceRefNode(binder_proc_t *that, struct binder_node *node, i
 s32			binder_proc_Node2Descriptor(binder_proc_t *that, struct binder_node *node, bool ref /* = true */, s32 type /* = PRIMARY */);
 struct binder_node * 	binder_proc_Descriptor2Node(binder_proc_t *that, s32 descriptor, const void* id, s32 type /* = PRIMARY */);
 status_t 		binder_proc_Ptr2Node(binder_proc_t *that, void *ptr, void *cookie, struct binder_node **n, iobuffer_t *io, const void* id, s32 type /* = PRIMARY */);
+
+/* death notifications */
+status_t        binder_proc_RequestDeathNotification(binder_proc_t *that, binder_proc_t *client, void *cookie);
+status_t        binder_proc_ClearDeathNotification(binder_proc_t *that, binder_proc_t *client, void *cookie);
+status_t        binder_proc_DeadBinderDone(binder_proc_t *that, void *cookie); // called on client proc
 
 status_t		binder_proc_TakeMeOffYourList(binder_proc_t *that);
 status_t		binder_proc_PutMeBackInTheGameCoach(binder_proc_t *that);

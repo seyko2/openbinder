@@ -20,6 +20,7 @@
 // #include <linux/gfp.h>
 #include <linux/mm.h>
 #include <linux/hash.h>
+#include <linux/sched.h>
 
 #include "binder_defs.h"
 #include "binder_proc.h"
@@ -53,11 +54,40 @@ static void binder_proc_init(binder_proc_t *that);
 static void binder_proc_spawn_looper(binder_proc_t *that);
 static void binder_proc_wakeup_timer(unsigned long);
 static void binder_proc_idle_timer(unsigned long);
+static void binder_proc_send_death_notification(binder_proc_t *that, death_notification_t *death);
+static void binder_proc_death_notification_dec_ref(binder_proc_t *that, death_notification_t *death, bool locked);
+static void binder_proc_RemoveThreadFromWaitStack(binder_proc_t *that, binder_thread_t *thread);
 
-static void set_thread_priority(pid_t thread, int nice)
+static void set_thread_priority(pid_t thread, int priority)
 {
-	// Do I just poke into nice value of the thread structure?
-	// Punt for now.
+	int nice;
+
+	// The following must match SysThreadChangePriority in libbinder.
+	if(priority >= 80)
+	{
+		// Normal to low priority
+		// map 80..100 to 0..19
+		nice = priority - 80;
+		if(nice > 19)
+			nice = 19;
+	}
+	else
+	{
+		// Normal priority or better
+		// map 0..79 to -20..-1
+		nice = priority-3 - 80;
+		nice /= 4;
+	}
+	//printk("set_thread_priority tid %d pri %d == nice %d\n", thread, priority, nice);
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,13)
+    #ifdef CONFIG_VE
+	set_user_nice(find_task_by_pid_type_ve(PIDTYPE_PID, thread), nice);
+    #else
+	// FIXME
+    #endif
+#else
+    set_user_nice(find_task_by_pid(thread), nice);
+#endif
 }
 
 
@@ -72,6 +102,7 @@ void binder_proc_init(binder_proc_t *that)
 	that->m_threads = NULL;
 	INIT_LIST_HEAD(&that->m_waitStack);
 	that->m_waitStackCount = 0;
+    that->m_wakeThreadMask = 0;
 	that->m_wakeupTime = B_INFINITE_TIMEOUT;
 	that->m_wakeupPriority = 10;
 	init_timer(&that->m_wakeupTimer);
@@ -102,7 +133,8 @@ void binder_proc_init(binder_proc_t *that)
 	that->m_waitingThreads = 0;
 	that->m_nonblockedThreads = 0;
 	that->m_maxThreads = 5;
-	that->m_idlePriority = B_REAL_TIME_PRIORITY;
+	//that->m_idlePriority = B_REAL_TIME_PRIORITY;
+	that->m_idlePriority = B_NORMAL_PRIORITY;
 	atomic_set(&that->m_loopingThreads, 0);
 #if 0
 	that->m_spawningThreads = 0;
@@ -114,6 +146,11 @@ void binder_proc_init(binder_proc_t *that)
 	binder_transaction_SetEvent(that->m_eventTransaction, TRUE);
 	that->m_pool = NULL;
 	that->m_pool_active = 0;
+	INIT_HLIST_HEAD(&that->m_incoming_death_notifications);
+	INIT_HLIST_HEAD(&that->m_outgoing_death_notifications);
+	INIT_HLIST_HEAD(&that->m_pending_death_notifications);
+	INIT_HLIST_HEAD(&that->m_active_death_notifications);
+	INIT_HLIST_HEAD(&that->m_deleted_death_notifications);
 }
 
 binder_proc_t *
@@ -132,10 +169,14 @@ new_binder_proc()
 void
 binder_proc_destroy(binder_proc_t *that)
 {
-	binder_transaction_t *cmd;
+	local_mapping_t *lm;
+	reverse_mapping_t *rm;
+	local_mapping_t *localMappings;
+	reverse_mapping_t *reverseMappings;
 	range_map_t *r;
 	struct rb_node *n;
 	int i;
+	bool first;
 	
 	DPRINTF(2, (KERN_WARNING "************* Destroying binder_proc %p *************\n", that));
 
@@ -144,16 +185,60 @@ binder_proc_destroy(binder_proc_t *that)
 	if(that->m_state & btFreed)
 		return;
 	
-	while ((cmd = that->m_needFree)) {
-		that->m_needFree = cmd->next;
-		binder_transaction_Destroy(cmd);
+	//DPRINTF(5, (KERN_WARNING "Binder team %p: collecting mappings.\n", that));
+	lm = localMappings = NULL;
+	rm = reverseMappings = NULL;
+	for (i=0;i<HASH_SIZE;i++) {
+		if (that->m_localHash[i]) {
+			// mark the front of the list
+			if (!localMappings) lm = localMappings = that->m_localHash[i];
+			// or tack this chain on the end
+			else lm->next = that->m_localHash[i];
+			// run to the end of the chain
+			while (lm->next) lm = lm->next;
+			// mark this chain handled
+			that->m_localHash[i] = NULL;
+		}
+		if (that->m_reverseHash[i]) {
+			// ditto for reverse mappings
+			if (!reverseMappings) rm = reverseMappings = that->m_reverseHash[i];
+			else rm->next = that->m_reverseHash[i];
+			while (rm->next) rm = rm->next;
+			that->m_reverseHash[i] = NULL;
+		}
+	}
+
+	first = TRUE;
+	while ((lm = localMappings)) {
+		if (first) {
+			first = FALSE;
+			DBSHUTDOWN((KERN_WARNING "Binder team %p: cleaning up local mappings.\n", that));
+		}
+		localMappings = lm->next;
+		// FIXME: send death notification
+		kmem_cache_free(local_mapping_cache, lm);
 	}
 	
+	first = TRUE;
+	while ((rm = reverseMappings)) {
+		if (first) {
+			first = FALSE;
+			DBSHUTDOWN((KERN_WARNING "Binder team %p: cleaning up reverse mappings.\n", that));
+		}
+		reverseMappings = rm->next;
+		DBSHUTDOWN((KERN_WARNING "Removed reverse mapping from node %p to descriptor %d\n",
+					rm->node, rm->descriptor+1));
+		// FIXME: decrement use count and possibly notify owner.  It seems like we do this below.
+		kmem_cache_free(reverse_mapping_cache, rm);
+	}
+
+	/*
 	for (i=0; i<HASH_SIZE; i++) {
 		BND_ASSERT(that->m_localHash[i] == NULL, "Leaking some local mappings!");
 		BND_ASSERT(that->m_reverseHash[i] == NULL, "Leaking some reverse mappings!");
 	}
-	
+	*/
+
 	// Free up any items in the transaction data pool.
 	BND_LOCK(that->m_map_pool_lock);
 	n = rb_first(&that->m_rangeMap);
@@ -252,20 +337,18 @@ void
 binder_proc_Die(binder_proc_t *that, bool locked)
 {
 	binder_transaction_t *cmd;
-	local_mapping_t *lm;
-	reverse_mapping_t *rm;
 	binder_node_t *n;
 	binder_thread_t *thr;
 	descriptor_t *descriptors;
 	bool dying;
 	bool first;
 	binder_transaction_t *cmdHead;
+	binder_transaction_t *freeCmdHead;
 	s32 descriptorCount;
 	binder_thread_t *threads;
-	int i;
-	local_mapping_t *localMappings;
-	reverse_mapping_t *reverseMappings;
 	bool acquired; 
+	struct hlist_node *_p, *_p2;
+	death_notification_t *death;
 
 	DBSHUTDOWN((KERN_WARNING "*****************************************\n"));
 	DBSHUTDOWN((KERN_WARNING "**** %s(%p, %s)\n", __func__, that, locked ? "locked" : "unlocked"));
@@ -300,27 +383,78 @@ binder_proc_Die(binder_proc_t *that, bool locked)
 	delete_sem(that->m_spawnerSem);
 	that->m_spawnerSem = B_BAD_SEM_ID;
 	*/
-	
+
 	DBLOCK((KERN_WARNING "%s() #2 going to lock %p in %d\n", __func__, that, current->pid));
 	BND_LOCK(that->m_lock);
 
-	// Remove team associated with pending free transactions, so
-	// they no longer hold a secondary reference on us.  We must
-	// keep them around because there could still be loopers using
-	// the data, if they kept the parcel after replying.
-	first = TRUE;
-	cmd = that->m_needFree;
-	while (cmd) {
-		if (first) {
-			first = FALSE;
-			DBSHUTDOWN((KERN_WARNING "Binder team %p: detaching free transactions.\n", that));
+	while(!hlist_empty(&that->m_outgoing_death_notifications)) {
+		binder_proc_t *observer_proc;
+		death = hlist_entry(that->m_outgoing_death_notifications.first, typeof(*death), observed_or_active);
+		hlist_del(&death->observed_or_active);
+        DBDEATH((KERN_WARNING "DeathNot %p: removed from proc %p m_outgoing_death_notifications, refcnt=%d\n",
+                 death, that, atomic_read(&death->ref_count)));
+		death->observed_proc = NULL;
+		observer_proc = death->observer_proc;
+		BND_UNLOCK(that->m_lock);
+		binder_proc_send_death_notification(observer_proc, death);
+		binder_proc_death_notification_dec_ref(observer_proc, death, FALSE);
+		BND_LOCK(that->m_lock);
+	}
+
+	while(!hlist_empty(&that->m_incoming_death_notifications)) {
+		binder_proc_t *observed_proc;
+		death = hlist_entry(that->m_incoming_death_notifications.first, typeof(*death), observer);
+        DBDEATH((KERN_WARNING "DeathNot %p: removing from proc %p m_incoming_death_notifications, refcnt=%d\n",
+                 death, that, atomic_read(&death->ref_count)));
+  		observed_proc = death->observed_proc;
+		if(observed_proc != NULL) {
+			if(observed_proc != that) {
+				// We need to grab the observed process' lock since the record
+				// is on the outgoing list on that process.
+				BND_UNLOCK(that->m_lock);
+				BND_LOCK(observed_proc->m_lock);
+			}
+			if(death->observed_proc != NULL) {
+				// If we are removing the record from the outgoing list it may
+				// have already been removed by the time we get the lock.
+				hlist_del(&death->observed_or_active);
+                DBDEATH((KERN_WARNING "DeathNot %p: removed from proc %p observed_or_active, refcnt=%d\n",
+                         death, death->observed_proc, atomic_read(&death->ref_count)));
+			}
+			if(observed_proc != that) {
+				// Reacquire our own process lock.
+				BND_UNLOCK(observed_proc->m_lock);
+				BND_LOCK(that->m_lock);
+			}
+			if(death->observed_proc != NULL) {
+				// Release the reference we got from the list before we
+				// switched the locks back.
+                death->observed_proc = NULL;
+				binder_proc_death_notification_dec_ref(that, death, TRUE);
+			}
 		}
-		DBSHUTDOWN((KERN_WARNING "Detaching transaction %p from thread %p (%d) to thread %p (%d) node %p\n",
-					cmd, cmd->sender, cmd->sender ? binder_thread_Thid(cmd->sender) : -1,
-					cmd->receiver, cmd->receiver ? binder_thread_Thid(cmd->receiver) : -1,
-					cmd->target));
-		binder_transaction_ReleaseTeam(cmd);
-		cmd = cmd->next;
+        DBDEATH((KERN_WARNING "DeathNot %p: finishing remove from proc %p m_incoming_death_notifications, refcnt=%d\n",
+                 death, that, atomic_read(&death->ref_count)));
+		hlist_del(&death->observer);
+		binder_proc_death_notification_dec_ref(that, death, TRUE);
+	}
+	hlist_for_each_entry_safe(death, _p, _p2, &that->m_pending_death_notifications, observed_or_active) {
+        DBDEATH((KERN_WARNING "DeathNot %p: removing from proc %p m_pending_death_notifications, refcnt=%d\n",
+                 death, that, atomic_read(&death->ref_count)));
+		hlist_del(&death->observed_or_active);
+		binder_proc_death_notification_dec_ref(that, death, TRUE);
+	}
+	hlist_for_each_entry_safe(death, _p, _p2, &that->m_active_death_notifications, observed_or_active) {
+        DBDEATH((KERN_WARNING "DeathNot %p: removing from proc %p m_active_death_notifications, refcnt=%d\n",
+                 death, that, atomic_read(&death->ref_count)));
+		hlist_del(&death->observed_or_active);
+		binder_proc_death_notification_dec_ref(that, death, TRUE);
+	}
+	hlist_for_each_entry_safe(death, _p, _p2, &that->m_deleted_death_notifications, observed_or_active) {
+        DBDEATH((KERN_WARNING "DeathNot %p: removing from proc %p m_deleted_death_notifications and freeing, refcnt=%d\n",
+                 death, that, atomic_read(&death->ref_count)));
+		hlist_del(&death->observed_or_active);
+		kfree(death);
 	}
 
 	// Now collect everything we have to clean up.  We don't want to
@@ -330,6 +464,9 @@ binder_proc_Die(binder_proc_t *that, bool locked)
 	del_timer_sync(&that->m_wakeupTimer);
 	del_timer_sync(&that->m_idleTimer);
 	
+	freeCmdHead = that->m_needFree;
+	that->m_needFree = NULL;
+
 	cmdHead = that->m_head;
 	that->m_head = NULL;
 	that->m_tail = &that->m_head;
@@ -341,29 +478,6 @@ binder_proc_Die(binder_proc_t *that, bool locked)
 		cmd = cmd->next;
 	}
 	
-	//DPRINTF(5, (KERN_WARNING "Binder team %p: collecting mappings.\n", that));
-	lm = localMappings = NULL;
-	rm = reverseMappings = NULL;
-	for (i=0;i<HASH_SIZE;i++) {
-		if (that->m_localHash[i]) {
-			// mark the front of the list
-			if (!localMappings) lm = localMappings = that->m_localHash[i];
-			// or tack this chain on the end
-			else lm->next = that->m_localHash[i];
-			// run to the end of the chain
-			while (lm->next) lm = lm->next;
-			// mark this chain handled
-			that->m_localHash[i] = NULL;
-		}
-		if (that->m_reverseHash[i]) {
-			// ditto for reverse mappings
-			if (!reverseMappings) rm = reverseMappings = that->m_reverseHash[i];
-			else rm->next = that->m_reverseHash[i];
-			while (rm->next) rm = rm->next;
-			that->m_reverseHash[i] = NULL;
-		}
-	}
-
 	descriptors = that->m_descriptors;
 	descriptorCount = that->m_descriptorCount;
 	that->m_descriptors = NULL;
@@ -392,6 +506,30 @@ binder_proc_Die(binder_proc_t *that, bool locked)
 	}
 
 	first = TRUE;
+	while ((cmd=freeCmdHead)) {
+		if (first) {
+			first = FALSE;
+			DBSHUTDOWN((KERN_WARNING "Binder team %p: detaching free transactions.\n", that));
+		}
+		DBSHUTDOWN((KERN_WARNING "Detaching transaction %p from thread %p (%d) to thread %p (%d) node %p\n",
+					cmd, cmd->sender, cmd->sender ? binder_thread_Thid(cmd->sender) : -1,
+					cmd->receiver, cmd->receiver ? binder_thread_Thid(cmd->receiver) : -1,
+					cmd->target));
+
+		// XXX The old implementation of this would call ReleaseTeam()
+		// here to keep the transaction around so that user space could
+		// hold on to it after replying.  For some reason this would
+		// cause leaks (if the process never got destroyed), and this
+		// system doesn't use this feature, so now we just destroy it.
+		freeCmdHead = cmd->next;
+		binder_transaction_Destroy(cmd);
+		/*
+		binder_transaction_ReleaseTeam(cmd);
+		cmd = cmd->next;
+		*/
+	}
+
+	first = TRUE;
 	while ((cmd = cmdHead)) {
 		if (first) {
 			first = FALSE;
@@ -403,30 +541,6 @@ binder_proc_Die(binder_proc_t *that, bool locked)
 		}
 		cmdHead = cmd->next;
 		binder_transaction_Destroy(cmd);
-	}
-
-	first = TRUE;
-	while ((lm = localMappings)) {
-		if (first) {
-			first = FALSE;
-			DBSHUTDOWN((KERN_WARNING "Binder team %p: cleaning up local mappings.\n", that));
-		}
-		localMappings = lm->next;
-		// FIXME: send death notification
-		kmem_cache_free(local_mapping_cache, lm);
-	}
-	
-	first = TRUE;
-	while ((rm = reverseMappings)) {
-		if (first) {
-			first = FALSE;
-			DBSHUTDOWN((KERN_WARNING "Binder team %p: cleaning up reverse mappings.\n", that));
-		}
-		reverseMappings = rm->next;
-		DBSHUTDOWN((KERN_WARNING "Removed reverse mapping from node %p to descriptor %d\n",
-					rm->node, rm->descriptor+1));
-		// FIXME: decrement use count and possibly notify owner.  It seems like we do this below.
-		kmem_cache_free(reverse_mapping_cache, rm);
 	}
 
 	first = TRUE;
@@ -478,6 +592,243 @@ binder_proc_Die(binder_proc_t *that, bool locked)
 
 	DBSHUTDOWN((KERN_WARNING "**** %s(%p, %s) done dying!\n", __func__, that, locked ? "locked" : "unlocked"));
 	DBSHUTDOWN((KERN_WARNING "*****************************************\n"));
+}
+
+status_t
+binder_proc_RequestDeathNotification(binder_proc_t *that, binder_proc_t *client, void *cookie)
+{
+	bool already_dead = FALSE;
+	death_notification_t *death = kmalloc(sizeof(death_notification_t), GFP_KERNEL);
+	if(death == NULL)
+		return -ENOMEM;
+    DBDEATH((KERN_WARNING "DeathNot %p: RequestDeathNotification created proc %p watching proc %p\n",
+             death, client, that));
+	atomic_set(&death->ref_count, 1);
+	death->observer_proc = client;
+	death->observed_proc = NULL;
+	death->cookie = cookie;
+	BND_LOCK(that->m_lock);
+	if(binder_proc_IsAlive(that)) {
+		atomic_inc(&death->ref_count);
+		death->observed_proc = that;
+		hlist_add_head(&death->observed_or_active, &that->m_outgoing_death_notifications);
+        DBDEATH((KERN_WARNING "DeathNot %p: added to proc %p m_outgoing_death_notifications, refcnt=%d\n",
+                 death, that, atomic_read(&death->ref_count)));
+	}
+	else {
+        DBDEATH((KERN_WARNING "DeathNot %p: already dead!\n", death));
+		already_dead = TRUE;
+	}
+	BND_UNLOCK(that->m_lock);
+	BND_LOCK(client->m_lock);
+	if(binder_proc_IsAlive(client)) {
+		atomic_inc(&death->ref_count);
+		hlist_add_head(&death->observer, &client->m_incoming_death_notifications);
+        DBDEATH((KERN_WARNING "DeathNot %p: added to proc %p m_incoming_death_notifications, refcnt=%d\n",
+                 death, client, atomic_read(&death->ref_count)));
+	}
+	BND_UNLOCK(client->m_lock);
+
+	if(already_dead)
+		binder_proc_send_death_notification(client, death);
+	binder_proc_death_notification_dec_ref(client, death, FALSE);
+	return 0;
+}
+
+status_t
+binder_proc_ClearDeathNotification(binder_proc_t *that, binder_proc_t *client, void *cookie)
+{
+	struct hlist_node *_p;
+	death_notification_t *death = NULL;
+
+	BND_LOCK(client->m_lock);
+	hlist_for_each_entry(death, _p, &client->m_incoming_death_notifications, observer) {
+		if(death->cookie == cookie) {
+			hlist_del(&death->observer);
+			break;
+		}
+	}
+	BND_UNLOCK(client->m_lock);
+
+    DBDEATH((KERN_WARNING "DeathNot %p: ClearDeathNotification for cookie %p\n", death, cookie));
+	if(death == NULL)
+		return -ENOENT;
+	BND_LOCK(that->m_lock);
+	if(death->observed_proc == that) {
+		hlist_del(&death->observed_or_active);
+		binder_proc_death_notification_dec_ref(client, death, FALSE); // this is holding the wrong lock, but we have a second reference
+        DBDEATH((KERN_WARNING "DeathNot %p: removed from proc %p m_incoming_death_notifications, refcnt=%d\n",
+                 death, client, atomic_read(&death->ref_count)));
+		death->observed_proc = NULL;
+	}
+	else {
+        DBDEATH((KERN_WARNING "DeathNot %p ClearDeathNotification: already pending or sent!\n", death));
+	}
+	BND_UNLOCK(that->m_lock);
+	binder_proc_death_notification_dec_ref(client, death, FALSE); // from hlist_del(&death->observer);
+	return 0;
+}
+
+status_t
+binder_proc_DeadBinderDone(binder_proc_t *that, void *cookie)
+{
+	struct hlist_node *_p;
+	death_notification_t *death = NULL;
+	BND_LOCK(that->m_lock);
+	hlist_for_each_entry(death, _p, &that->m_active_death_notifications, observed_or_active) {
+		if(death->cookie == cookie) {
+            DBDEATH((KERN_WARNING "DeathNot %p DeadBinderDone: removing from proc %p m_active_death_notifications, refcnt=%d\n",
+                     death, that, atomic_read(&death->ref_count)));
+			hlist_del(&death->observed_or_active);
+			death->observed_proc = NULL;
+			binder_proc_death_notification_dec_ref(that, death, TRUE);
+			break;
+		}
+	}
+	BND_UNLOCK(that->m_lock);
+    DBDEATH((KERN_WARNING "DeathNot %p: DeadBinderDone completed on cookie %p\n", death, cookie));
+	if(death == NULL)
+		return -ENOENT;
+	return 0;
+}
+
+static void
+binder_proc_activate_death_processing_thread(binder_proc_t *that)
+{
+	binder_thread_t *thread;
+
+	assert_spin_locked(&that->m_spin_lock);
+	if(!list_empty(&that->m_waitStack)) {
+		// TODO: pop thread from wait stack here
+		thread = list_entry(that->m_waitStack.next, binder_thread_t, waitStackEntry);
+        DBDEATH((KERN_WARNING "Activating death processing thread pid %d (proc %p)\n",
+                 thread->m_thid, that));
+		binder_proc_RemoveThreadFromWaitStack(that, thread);
+		thread->wakeReason = WAKE_REASON_PROCESS_DEATH;
+		BND_ASSERT(thread->nextRequest == NULL, "Thread has a request!");
+		binder_thread_Wakeup(thread);
+	}
+	else {
+        BND_ASSERT((that->m_wakeThreadMask & WAKE_THREAD_FOR_PROCESS_DEATH) == 0, "WAKE_THREAD_FOR_PROCESS_DEATH already set");
+        that->m_wakeThreadMask |= WAKE_THREAD_FOR_PROCESS_DEATH;
+		DBSPAWN((KERN_WARNING "%s(%p) empty waitstack\n", __func__, that));
+	}
+}
+
+void
+binder_proc_send_death_notification(binder_proc_t *that, death_notification_t *death)
+{
+	unsigned long flags;
+	bool first;
+
+	DIPRINTF(0, (KERN_WARNING "%s(%p)\n", __func__, that));
+
+	BND_LOCK(that->m_lock);
+
+    DBDEATH((KERN_WARNING "DeathNot %p: Sending death notification to %p (alive=%d)\n",
+             death, that, binder_proc_IsAlive(that)));
+
+	if(binder_proc_IsAlive(that)) {
+		spin_lock_irqsave(&that->m_spin_lock, flags);
+		first = hlist_empty(&that->m_pending_death_notifications) && hlist_empty(&that->m_deleted_death_notifications);
+
+		atomic_inc(&death->ref_count);
+		hlist_add_head(&death->observed_or_active, &that->m_pending_death_notifications);
+        DBDEATH((KERN_WARNING "DeathNot %p: adding to proc %p m_pending_death_notifications, refcnt=%d, first=%d\n",
+                 death, that, atomic_read(&death->ref_count), first));
+		death->observed_proc = that;
+
+		if(first) {
+			binder_proc_activate_death_processing_thread(that);
+		}
+		spin_unlock_irqrestore(&that->m_spin_lock, flags);
+	}
+
+	BND_UNLOCK(that->m_lock);
+}
+
+void
+binder_proc_death_notification_dec_ref(binder_proc_t *that, death_notification_t *death, bool locked)
+{
+    DBDEATH((KERN_WARNING "DeathNot %p: decrementing refcnt, cur=%d\n",
+             death, atomic_read(&death->ref_count)));
+	if(atomic_dec_return(&death->ref_count) == 0) {
+		BND_ASSERT(death->observed_proc == NULL, "freeing death_notification_t with observed_proc still set");
+		if(!locked)
+			BND_LOCK(that->m_lock);
+		if(binder_proc_IsAlive(that)) {
+			unsigned long flags;
+			bool first;
+			spin_lock_irqsave(&that->m_spin_lock, flags);
+			first = hlist_empty(&that->m_pending_death_notifications) && hlist_empty(&that->m_deleted_death_notifications);
+#if BINDER_DEBUG
+            struct hlist_node *_p, *_p2;
+            death_notification_t *node;
+            hlist_for_each_entry_safe(node, _p, _p2, &that->m_outgoing_death_notifications, observed_or_active) {
+                BND_ASSERT(node != death, "Death ref count reached 0 while still on m_outgoing_death_notifications list");
+            }
+            hlist_for_each_entry_safe(node, _p, _p2, &that->m_incoming_death_notifications, observer) {
+                BND_ASSERT(node != death, "Death ref count reached 0 while still on m_incoming_death_notifications list");
+            }
+            hlist_for_each_entry_safe(node, _p, _p2, &that->m_pending_death_notifications, observed_or_active) {
+                BND_ASSERT(node != death, "Death ref count reached 0 while still on m_pending_death_notifications list");
+            }
+            hlist_for_each_entry_safe(node, _p, _p2, &that->m_active_death_notifications, observed_or_active) {
+                BND_ASSERT(node != death, "Death ref count reached 0 while still on m_active_death_notifications list");
+            }
+            hlist_for_each_entry_safe(node, _p, _p2, &that->m_deleted_death_notifications, observed_or_active) {
+                BND_ASSERT(node != death, "Death ref count reached 0 while still on m_deleted_death_notifications list");
+            }
+            DBDEATH((KERN_WARNING "DeathNot %p: observer.next=%p, active.next=%p\n",
+                     death, death->observer.next, death->observed_or_active.next));
+#endif
+            BND_ASSERT(death->observer.next == LIST_POISON1, "death ref count reached 0 while still on observer list");
+            BND_ASSERT(death->observed_or_active.next == LIST_POISON1, "death ref count reached 0 while still on observed_or_active list");
+            DBDEATH((KERN_WARNING "DeathNot %p: adding to deleted list, first=%d\n", death, first));
+			hlist_add_head(&death->observed_or_active, &that->m_deleted_death_notifications);
+			if(first)
+				binder_proc_activate_death_processing_thread(that);
+			spin_unlock_irqrestore(&that->m_spin_lock, flags);
+		}
+		else {
+			kfree(death);
+		}
+		if(!locked)
+			BND_UNLOCK(that->m_lock);
+	}
+}
+
+void
+binder_proc_GetPendingDeathNotifications(binder_proc_t *that, binder_thread_t *thread, iobuffer_t *io)
+{
+	struct hlist_node *_p, *_p2;
+	death_notification_t *death;
+	BND_LOCK(that->m_lock);
+
+	hlist_for_each_entry_safe(death, _p, _p2, &that->m_deleted_death_notifications, observed_or_active) {
+		if(iobuffer_remaining(io) < 8)
+			goto buffer_full;
+        DBDEATH((KERN_WARNING "DeathNot %p: GetPending removing from proc %p m_deleted_death_notifications and freeing\n",
+                 death, that));
+		hlist_del(&death->observed_or_active);
+		iobuffer_write_u32(io, brCLEAR_DEATH_NOTIFICATION_DONE);
+		iobuffer_write_u32(io, (int32_t)death->cookie);
+		kfree(death);
+	}
+
+	hlist_for_each_entry_safe(death, _p, _p2, &that->m_pending_death_notifications, observed_or_active) {
+		if(iobuffer_remaining(io) < 8)
+			goto buffer_full;
+		hlist_del(&death->observed_or_active);
+		iobuffer_write_u32(io, brDEAD_BINDER);
+		iobuffer_write_u32(io, (int32_t)death->cookie);
+		hlist_add_head(&death->observed_or_active, &that->m_active_death_notifications);
+        DBDEATH((KERN_WARNING "DeathNot %p: moved from proc %p m_pending_death_notifications to m_active_death_notifications, refcnt=%d\n",
+                 death, that, atomic_read(&death->ref_count)));
+	}
+	thread->wakeReason = WAKE_REASON_NONE;
+buffer_full:
+	BND_UNLOCK(that->m_lock);
 }
 
 status_t 
@@ -665,11 +1016,6 @@ binder_proc_Ptr2Node(binder_proc_t *that, void *ptr, void *cookie, binder_node_t
 	DBLOCK((KERN_WARNING "Ptr2Node() going to lock %p in %d\n", that, current->pid));
 	BND_LOCK(that->m_lock);
 
-	if (!binder_proc_IsAlive(that)) {
-		BND_UNLOCK(that->m_lock);
-		return -ENOENT;
-	}
-	
 	bucket = hash_ptr(ptr, HASH_BITS);
 	DPRINTF(9, (KERN_WARNING "ptr(%p) mapping to ptr bucket %u (value %p) in team %p\n",ptr,bucket,that->m_localHash[bucket],that));
 	head = &that->m_localHash[bucket];
@@ -742,6 +1088,11 @@ binder_proc_Ptr2Node(binder_proc_t *that, void *ptr, void *cookie, binder_node_t
 	if (io && (iobuffer_remaining(io) < 8)) {
 		BND_UNLOCK(that->m_lock);
 		return -EINVAL;
+	}
+
+	if (!binder_proc_IsAlive(that)) {
+		BND_UNLOCK(that->m_lock);
+		return -ENOENT;
 	}
 
 	newMapping = (local_mapping_t*)kmem_cache_alloc(local_mapping_cache, GFP_KERNEL);
@@ -1027,8 +1378,10 @@ binder_proc_ForceRefNode(binder_proc_t *that, binder_node_t *node, iobuffer_t *i
 	// If this operation recovered a strong reference on the object, we
 	// need to tell its owning process for proper bookkeeping;
 	if (recovered) {
-		if (binder_node_Home(node) != NULL) {
-			binder_proc_AddLocalStrongRef(binder_node_Home(node), node);
+		binder_proc_t* proc = binder_node_AcquireHome(node, that);
+		if (proc != NULL) {
+			binder_proc_AddLocalStrongRef(proc, node);
+			BND_RELEASE(binder_proc, proc, STRONG, that);
 		}
 	} else {
 		iobuffer_write_u32(io, brRELEASE);
@@ -1067,8 +1420,8 @@ binder_proc_RemoveThreadFromWaitStack(binder_proc_t *that, binder_thread_t *thre
 
 	list_del_init(&thread->waitStackEntry);
 	that->m_waitStackCount--;
-	DIPRINTF(0, (KERN_WARNING "%s(%p) popped thread %p from waitStack %d threads left\n", __func__, that, who, that->m_waitStackCount));
-	if(thread->idle && that->m_waitStackCount > BND_PROC_MAX_IDLE_THREADS)
+	DIPRINTF(0, (KERN_WARNING "%s(%p) popped thread %p from waitStack %d threads left\n", __func__, that, thread, that->m_waitStackCount));
+	if(thread->wakeReason == WAKE_REASON_IDLE && that->m_waitStackCount > BND_PROC_MAX_IDLE_THREADS)
 		mod_timer(&that->m_idleTimer, that->m_idleTimeout + jiffies);
 	else if(that->m_waitStackCount == BND_PROC_MAX_IDLE_THREADS)
 		del_timer(&that->m_idleTimer);
@@ -1198,6 +1551,24 @@ binder_proc_WaitForRequest(binder_proc_t *that, binder_thread_t* who, binder_tra
 {
 	status_t err = 0;
 	unsigned long flags;
+
+    if(that->m_wakeThreadMask) {
+        spin_lock_irqsave(&that->m_spin_lock, flags);
+        if(that->m_wakeThreadMask & WAKE_THREAD_FOR_PROCESS_DEATH) {
+            that->m_wakeThreadMask &= ~WAKE_THREAD_FOR_PROCESS_DEATH;
+            who->wakeReason = WAKE_REASON_PROCESS_DEATH;
+        }
+        spin_unlock_irqrestore(&that->m_spin_lock, flags);
+    }
+	if(who->wakeReason == WAKE_REASON_PROCESS_DEATH) {
+		BND_LOCK(that->m_lock);
+		if(hlist_empty(&that->m_pending_death_notifications) && hlist_empty(&that->m_deleted_death_notifications)) {
+			printk(KERN_WARNING "%s() thread->wakeReason == WAKE_REASON_PROCESS_DEATH with no pending notifications\n", __func__);
+			who->wakeReason = WAKE_REASON_NONE;
+		}
+		BND_UNLOCK(that->m_lock);
+		return DEATH_NOTIFICATION_READY;
+	}
 	
 	DBLOCK((KERN_WARNING "WaitForRequest() going to lock %p in %d\n", that, binder_thread_Thid(who)));
 	BND_LOCK(that->m_lock);
@@ -1272,7 +1643,7 @@ binder_proc_WaitForRequest(binder_proc_t *that, binder_thread_t* who, binder_tra
 			/*	A request has been delivered directly to us.  In this
 				case the thread has already been removed from the wait
 				stack. */
-			DPRINTF(1, (KERN_WARNING "Thread %d received transaction %p, err=0x%08x\n", binder_thread_Thid(who), *t, err));
+			DIPRINTF(1, (KERN_WARNING "Thread %d received transaction %p, err=0x%08x\n", binder_thread_Thid(who), *t, err));
 			who->nextRequest = NULL;
 			err = 0;
 		
@@ -1286,18 +1657,25 @@ binder_proc_WaitForRequest(binder_proc_t *that, binder_thread_t* who, binder_tra
 			DBTRANSACT((KERN_WARNING "Thread %d snooze returned with err=0x%08x\n",
 						binder_thread_Thid(who), err));
 
-			if(who->idle) {
-				who->idle = FALSE; // the main thread may ignore a request to die
-				err = -ETIMEDOUT;
-				DBSPAWN((KERN_WARNING "*** TIME TO DIE!  waiting=%d, nonblocked=%d\n",
-						that->m_waitingThreads, that->m_nonblockedThreads));
-			}
-			else {
-				BND_ASSERT(err < 0 || !binder_proc_IsAlive(that), "thread woke up without a reason");
-				/*	If this thread is still on the wait stack, remove it. */
-				DBTRANSACT((KERN_WARNING "Popping thread %d from wait stack.\n",
-							binder_thread_Thid(who)));
-				binder_proc_RemoveThreadFromWaitStack(that, who);
+			switch(who->wakeReason) {
+				case WAKE_REASON_IDLE:
+					who->wakeReason = WAKE_REASON_NONE; // the main thread may ignore a request to die
+					err = -ETIMEDOUT;
+					DBSPAWN((KERN_WARNING "*** TIME TO DIE!  waiting=%d, nonblocked=%d\n",
+							that->m_waitingThreads, that->m_nonblockedThreads));
+					break;
+
+				case WAKE_REASON_PROCESS_DEATH:
+					// the threads stays in this state until the pending list becomes empty
+					err = DEATH_NOTIFICATION_READY;
+					break;
+					
+				default:
+					BND_ASSERT(err < 0 || !binder_proc_IsAlive(that), "thread woke up without a reason");
+					/*	If this thread is still on the wait stack, remove it. */
+					DBTRANSACT((KERN_WARNING "Popping thread %d from wait stack.\n",
+								binder_thread_Thid(who)));
+					binder_proc_RemoveThreadFromWaitStack(that, who);
 			}
 		}
 	}
@@ -1328,8 +1706,8 @@ binder_proc_WaitForRequest(binder_proc_t *that, binder_thread_t* who, binder_tra
 		else {
 			DBTRANSACT((KERN_WARNING "*** NON-TRANSACTION IN %d!  Error=0x%08x\n", binder_thread_Thid(who), err));
 		}
-		// By default (such as errors) run at priority 10.
-		set_thread_priority(binder_thread_Thid(who), 10);
+		// By default (such as errors) run at normal priority.
+		set_thread_priority(binder_thread_Thid(who), B_NORMAL_PRIORITY);
 	}
 	
 	#if VALIDATES_BINDER
@@ -1449,7 +1827,9 @@ status_t
 binder_proc_SetIdlePriority(binder_proc_t *that, s32 pri)
 {
 	DPRINTF(4, (KERN_WARNING "%s(%p, %d)\n", __func__, that, pri));
-	that->m_idlePriority = (pri > 0 ? (pri <= B_REAL_TIME_PRIORITY ? pri : B_REAL_TIME_PRIORITY) : 1);
+	that->m_idlePriority = (pri > B_MIN_PRIORITY_VAL ?
+		(pri <= B_MAX_PRIORITY_VAL ? pri : B_MAX_PRIORITY_VAL) :
+		B_MIN_PRIORITY_VAL);
 	return 0;
 }
 
@@ -1708,7 +2088,7 @@ binder_proc_AllocateTransactionBuffer(binder_proc_t *that, size_t size)
 		rm = binder_proc_free_map_alloc_l(that, size);
 		if (rm) {
 			// allocate RAM for it
-			rm->page = alloc_pages(GFP_KERNEL, order);
+			rm->page = alloc_pages(GFP_KERNEL | __GFP_REPEAT, order);
 			if (!rm->page) {
 				binder_proc_free_map_insert(that, rm);
 				rm = 0;
@@ -1807,7 +2187,7 @@ void binder_proc_wakeup_timer(unsigned long data)
 		BND_ASSERT(that->m_eventTransaction->next == NULL, "Event transaction already in queue!");
 		binder_transaction_SetPriority(that->m_eventTransaction, (s16)that->m_wakeupPriority);
 		that->m_wakeupTime = B_INFINITE_TIMEOUT;
-		that->m_wakeupPriority = 10;
+		that->m_wakeupPriority = B_LOW_PRIORITY; // this value should not be used anywhere
 		that->m_state |= btEventInQueue;
 
 		binder_proc_DeliverTransacton(that, that->m_eventTransaction);
@@ -1831,7 +2211,7 @@ void binder_proc_idle_timer(unsigned long data)
 	if(that->m_waitStackCount > BND_PROC_MAX_IDLE_THREADS) {
 		BND_ASSERT(!list_empty(&that->m_waitStack), "bad m_waitStackCount");
 		thread = list_entry(that->m_waitStack.prev, binder_thread_t, waitStackEntry);
-		thread->idle = TRUE;
+		thread->wakeReason = WAKE_REASON_IDLE;
 		binder_proc_RemoveThreadFromWaitStack(that, thread);
 		binder_thread_Wakeup(thread);
 	}

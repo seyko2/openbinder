@@ -128,6 +128,7 @@ typedef struct binder_transaction_data
 		unsigned long	handle;		// target descriptor of command transaction
 		void			*ptr;		// target descriptor of return transaction
 	} target;
+	void*			cookie;			// target object cookie
 	unsigned int	code;			// transaction command
 	
 	// General information about the transaction.
@@ -228,7 +229,22 @@ enum BinderDriverReturnProtocol {
 	 * bcENTER_LOOPER.
 	 */
 
-	brFINISHED
+	brFINISHED,
+
+	brDEAD_BINDER,
+	/*
+		void *: cookie
+	*/
+	brCLEAR_DEATH_NOTIFICATION_DONE,
+	/*
+		void *: cookie
+	*/
+
+	brFAILED_REPLY
+	/*
+		The the last transaction (either a bcTRANSACTION or
+		a bcATTEMPT_ACQUIRE) failed (e.g. out of memory).  No parameters.
+	*/
 };
 
 enum BinderDriverCommandProtocol {
@@ -332,9 +348,25 @@ enum BinderDriverCommandProtocol {
 		int: 1 to stop immediately, 0 when root object is released
 	*/
 
-	bcSTOP_SELF
+	bcSTOP_SELF,
 	/*
 		int: 1 to stop immediately, 0 when root object is released
+	*/
+
+	bcREQUEST_DEATH_NOTIFICATION,
+	/*
+		void *:	ptr to binder
+		void *: cookie
+	*/
+	
+	bcCLEAR_DEATH_NOTIFICATION,
+	/*
+		void *:	ptr to binder
+		void *: cookie
+	*/
+	bcDEAD_BINDER_DONE
+	/*
+		void *: cookie
 	*/
 };
 

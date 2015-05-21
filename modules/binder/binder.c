@@ -345,6 +345,7 @@ static int /*__init*/ create_pools(void)
 	DPRINTF(4, (KERN_WARNING "%s()\n", __func__));
 
 	// small object pools
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,23)
 	transaction_cache = kmem_cache_create("binder_transaction_t", sizeof(binder_transaction_t)+pad, 0, cache_flags, transaction_slab_xtor, transaction_slab_xtor);
 	if (!transaction_cache) return -ENOMEM;
 	thread_cache = kmem_cache_create("binder_thread_t", sizeof(binder_thread_t)+pad, 0, cache_flags, thread_slab_xtor, thread_slab_xtor);
@@ -357,6 +358,20 @@ static int /*__init*/ create_pools(void)
 	if (!reverse_mapping_cache) return -ENOMEM;
 	range_map_cache = kmem_cache_create("range_map_t", sizeof(range_map_t)+pad, 0, cache_flags, range_map_slab_xtor, range_map_slab_xtor);
 	if (!range_map_cache) return -ENOMEM;
+#else
+	transaction_cache = kmem_cache_create("binder_transaction_t", sizeof(binder_transaction_t)+pad, 0, cache_flags, transaction_slab_xtor);
+	if (!transaction_cache) return -ENOMEM;
+	thread_cache = kmem_cache_create("binder_thread_t", sizeof(binder_thread_t)+pad, 0, cache_flags, thread_slab_xtor);
+	if (!thread_cache) return -ENOMEM;
+	node_cache = kmem_cache_create("binder_node_t", sizeof(binder_node_t)+pad, 0, cache_flags, node_slab_xtor);
+	if (!node_cache) return -ENOMEM;
+	local_mapping_cache = kmem_cache_create("local_mapping_t", sizeof(local_mapping_t)+pad, 0, cache_flags, local_mapping_slab_xtor);
+	if (!local_mapping_cache) return -ENOMEM;
+	reverse_mapping_cache = kmem_cache_create("reverse_mapping_t", sizeof(reverse_mapping_t)+pad, 0, cache_flags, reverse_mapping_slab_xtor);
+	if (!reverse_mapping_cache) return -ENOMEM;
+	range_map_cache = kmem_cache_create("range_map_t", sizeof(range_map_t)+pad, 0, cache_flags, range_map_slab_xtor);
+	if (!range_map_cache) return -ENOMEM;
+#endif
 
 	// hash tables
 	pid_table = kmalloc(sizeof(void *) << PID_HASH_BITS, GFP_KERNEL);
@@ -392,12 +407,21 @@ static int destroy_pools(void)
 	}
 #endif
 	
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,23)
 	res |= kmem_cache_destroy(transaction_cache);
 	res |= kmem_cache_destroy(thread_cache);
 	res |= kmem_cache_destroy(node_cache);
 	res |= kmem_cache_destroy(local_mapping_cache);
 	res |= kmem_cache_destroy(reverse_mapping_cache);
 	res |= kmem_cache_destroy(range_map_cache);
+#else
+	kmem_cache_destroy(transaction_cache);
+	kmem_cache_destroy(thread_cache);
+	kmem_cache_destroy(node_cache);
+	kmem_cache_destroy(local_mapping_cache);
+	kmem_cache_destroy(reverse_mapping_cache);
+	kmem_cache_destroy(range_map_cache);
+#endif
 	if (pid_table) kfree(pid_table);
 	return res;
 }
@@ -582,7 +606,8 @@ static int binder_mmap(struct file * filp, struct vm_area_struct * vma)
 	// FIXME: Unil we see a device with ZONE_HIGH memory (currently, greater
 	// than 896MB RAM) we don't need to worry about alloc_page.
 	vma->vm_ops = &binder_vm_ops;
-	vma->vm_flags |= VM_RESERVED | VM_WRITE | VM_READ | VM_RAND_READ | VM_IO | VM_DONTCOPY | VM_DONTEXPAND;
+//	vma->vm_flags |= VM_RESERVED | VM_WRITE | VM_READ | VM_RAND_READ | VM_IO | VM_DONTCOPY | VM_DONTEXPAND;
+	vma->vm_flags |= VM_RESERVED | VM_READ | VM_RAND_READ | VM_IO | VM_DONTCOPY | VM_DONTEXPAND;
 	vma->vm_flags &= ~(VM_SHARED);
 	vma->vm_private_data = filp->private_data;
 	binder_vma_open(vma);
@@ -603,6 +628,7 @@ static void binder_vma_open(struct vm_area_struct * area)
 		that->m_mmap_start = rm->start = area->vm_start;	
 		rm->end = area->vm_end;
 		rm->page = NULL;
+		rm->team = that;
 		BND_LOCK(that->m_map_pool_lock);
 		binder_proc_free_map_insert(that, rm);
 		BND_UNLOCK(that->m_map_pool_lock);

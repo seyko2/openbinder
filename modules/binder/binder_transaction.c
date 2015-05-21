@@ -23,6 +23,12 @@
 #include "binder_node.h"
 #include <asm/uaccess.h>
 #include <asm/cacheflush.h>
+#include <linux/moduleparam.h>
+
+static int binder_transaction_print_size = 32 * 1024;
+static int binder_transaction_fail_size = 16 * 1024 * 1024;
+module_param_named(warn_transaction_size, binder_transaction_print_size, int, 0644);
+module_param_named(max_transaction_size, binder_transaction_fail_size, int, 0644);
 
 #define PURGATORY 0
 #if PURGATORY
@@ -164,7 +170,7 @@ binder_transaction_ConvertFromNodes(binder_transaction_t *that, binder_proc_t *t
 					flat->type = kPackedLargeBinderType;
 					flat->binder = NULL;
 					flat->cookie = NULL;
-				} else if (binder_node_Home(n) == to) {
+				} else if (n->m_home == to) {
 					flat->type = kPackedLargeBinderType;
 					flat->binder = binder_node_Ptr(n);
 					flat->cookie = binder_node_Cookie(n);
@@ -183,7 +189,7 @@ binder_transaction_ConvertFromNodes(binder_transaction_t *that, binder_proc_t *t
 					flat->type = kPackedLargeBinderWeakType;
 					flat->binder = NULL;
 					flat->cookie = NULL;
-				} else if (binder_node_Home(n) == to) {
+				} else if (n->m_home == to) {
 					flat->type = kPackedLargeBinderWeakType;
 					flat->binder = binder_node_Ptr(n);
 					flat->cookie = binder_node_Cookie(n);
@@ -344,7 +350,7 @@ void binder_transaction_Init(binder_transaction_t *that)
 	that->code = 0;
 	that->team = NULL;
 	that->flags = 0;
-	that->priority = 10; // FIXME?
+	that->priority = B_NORMAL_PRIORITY; // FIXME?
 	that->data_size = 0;
 	that->offsets_size = 0;
 	that->data_ptr = NULL;
@@ -360,8 +366,13 @@ binder_transaction_dtor(binder_transaction_t *that)
 	DPRINTF(4, (KERN_WARNING "%s(%p)\n", __func__, that));
 	if (that->offsets_size > 0) {
 		DPRINTF(5, (KERN_WARNING "  -- have binders to clean up\n"));
-		BND_ASSERT((that->flags&tfReferenced) != 0, "ConvertToNodes() not called!");
-		BND_ASSERT((that->map) != NULL, "binder_transaction_dtor that->map == NULL");
+		if(that->flags & tfReferenced) {
+			BND_ASSERT((that->map) != NULL, "binder_transaction_dtor that->map == NULL");
+		}
+		else {
+			DPRINTF(0, (KERN_WARNING "ConvertToNodes() not called on %p! that->map == %p\n", that, that->map));
+			BND_ASSERT((that->map) == NULL, "binder_transaction_dtor ConvertToNodes() not called and that->map != NULL");
+		}
 		if (that->team && BND_ATTEMPT_ACQUIRE(binder_proc, that->team, STRONG, that)) owner = that->team;
 
 		DPRINTF(5, (KERN_WARNING "  -- that->map == %p\n", that->map));
@@ -441,7 +452,11 @@ binder_transaction_dtor(binder_transaction_t *that)
 	
 	// release the RAM and address space in the receiver.
 	if (that->map) {
-		if (that->map->team) binder_proc_FreeTransactionBuffer(that->map->team, that->map);
+		binder_proc_t* mapProc = that->map->team;
+		if (mapProc) {
+			binder_proc_FreeTransactionBuffer(mapProc, that->map);
+			BND_RELEASE(binder_proc, mapProc, WEAK, that);
+		}
 		else printk(KERN_WARNING "%s(%p) -- no team trying to release map %p\n", __func__, that, that->map);
 	}
 
@@ -463,16 +478,28 @@ binder_transaction_CopyTransactionData(binder_transaction_t *that, binder_proc_t
 	size_t tSize = INT_ALIGN(that->data_size) + INT_ALIGN(that->offsets_size);
 	DPRINTF(0, (KERN_WARNING "%s(%p, %p)\n", __func__, that, recipient));
 	// Do we need to ensure that->map contains NULL?  What do we do if it doesn't?
+	if(tSize >= binder_transaction_print_size) {
+		printk(KERN_WARNING "%s-%d: binder_transaction_CopyTransactionData size %d (%d,%d) to %p, reply=%d\n",
+			   current->comm, current->pid, tSize, that->data_size, that->offsets_size, recipient, binder_transaction_IsReply(that));
+	}
 	if (binder_transaction_IsAcquireReply(that)) {
 		// No data to copy
 		result = 0;
 	} else {
 	// if (tSize >= sizeof(that->data)) {
+		if(tSize >= binder_transaction_fail_size) {
+			printk(KERN_ERR "%s-%d: binder_transaction_CopyTransactionData transaction size too big, size %d (%d,%d) to %p\n",
+				   current->comm, current->pid, tSize, that->data_size, that->offsets_size, recipient);
+			return result;
+		}
 		that->map = binder_proc_AllocateTransactionBuffer(recipient, tSize);
 		if (that->map) {
-			// locate our kernel-space address
-			u8 *to = page_address(that->map->page);
+			u8 *to;
 			size_t not_copied;
+			BND_ACQUIRE(binder_proc, that->map->team, WEAK, that);
+
+			// locate our kernel-space address
+			to = page_address(that->map->page);
 			// copy the data from user-land
 			BND_FLUSH_CACHE(  binder_transaction_UserData(that),
 			                  binder_transaction_UserData(that) + tSize );
@@ -488,6 +515,16 @@ binder_transaction_CopyTransactionData(binder_transaction_t *that, binder_proc_t
 				// BUSTED!
 				DPRINTF(0, (KERN_WARNING " -- Couldn't copy %u of %u bytes from user-land %p to %p\n", not_copied, that->data_size, that->data_ptr, to));
 			}
+            DPRINTF(4, ("Copied transaction %p: data=%p, size=%p, not_copied=%p\n",
+                that, binder_transaction_Data(that),
+                binder_transaction_DataSize(that),
+                not_copied));
+            if (binder_transaction_DataSize(that) > 0) {
+                DPRINTF(4, ("Copied transaction %p: my_first=%p, user_first=%p\n",
+                    that,
+                    (*(u32*)binder_transaction_Data(that)),
+                    (*(u32*)that->data_ptr)));
+            }
 			BND_FLUSH_CACHE(  binder_transaction_Data(that),
 			                  binder_transaction_Data(that) + tSize );
 			result = not_copied ? -EFAULT : 0;

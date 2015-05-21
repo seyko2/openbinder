@@ -33,7 +33,11 @@ typedef struct binder_thread {
 	struct list_head			waitStackEntry;
 	struct binder_thread *		pendingChild;	/* Child for bcREQUEST_ROOT_OBJECT */
 	struct binder_transaction *	nextRequest;	/* Return request to waiting thread */
-	bool idle;
+	enum {
+		WAKE_REASON_NONE = 0,
+		WAKE_REASON_IDLE,
+		WAKE_REASON_PROCESS_DEATH
+	} wakeReason;
 	
 	/*	Stupid hack. */
 	int					returnedEventPriority;

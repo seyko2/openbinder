@@ -21,7 +21,6 @@
 
 #include <asm/atomic.h>
 #include <asm/semaphore.h>
-//#include <linux/semaphore.h>
 #include <linux/delay.h>
 #include <linux/types.h>
 #include <linux/slab.h>
@@ -64,10 +63,11 @@ void soft_yield(void);
 
 #define STOP_ON_ASSERT //msleep_interruptible(1000*60*60*24*7)
 
-#define BND_MEM_DEBUG 1
+#define BND_MEM_DEBUG 0 // slab destructors are no longer available
 
 #if 0
 
+#define BINDER_DEBUG 1
 #define VALIDATES_BINDER 0
 #define DIPRINTF(level,a) do { if (level <= 9) printk a; } while(0)
 #define DPRINTF(level,a) do { if (level <= 9) { printk a; soft_yield();} } while(0)
@@ -80,8 +80,10 @@ void soft_yield(void);
 #define DBLOCK(x) printk x
 #define DBREFS(x) printk x
 #define DBREAD(x) printk x
+#define DBDEATH(x) printk x
 
 #else
+#define BINDER_DEBUG 0
 #define VALIDATES_BINDER 0
 #define DIPRINTF(level,a)
 #define DPRINTF(level,a)
@@ -95,6 +97,7 @@ void soft_yield(void);
 #define DBLOCK(x)
 #define DBREFS(x)
 #define DBREAD(x)
+#define DBDEATH(x)
 #endif
 
 // errors triggered by userspace bugs
@@ -332,5 +335,10 @@ static __inline__  bool cmpxchg32(volatile int *atom, int *value, int newValue)
 
 #define B_BAD_THREAD_ID ((pid_t)0)
 #define B_REAL_TIME_PRIORITY (10)
+#define B_NORMAL_PRIORITY (80)
+#define B_LOW_PRIORITY (100)
+
+#define B_MIN_PRIORITY_VAL (5)
+#define B_MAX_PRIORITY_VAL (100)
 
 #endif // BINDER_DEFS_H

@@ -62,7 +62,7 @@ binder_thread_t * binder_thread_init(int thid, binder_proc_t *team)
 		INIT_LIST_HEAD(&that->waitStackEntry);
 		that->pendingChild = NULL;
 		that->nextRequest = NULL;
-		that->idle = FALSE;
+		that->wakeReason = WAKE_REASON_NONE;
 		that->virtualThid = 0;
 		atomic_set(&that->m_primaryRefs, 0);
 		atomic_set(&that->m_secondaryRefs, 0);
@@ -272,7 +272,7 @@ binder_thread_Cleanup(binder_thread_t *that)
 		binder_transaction_Destroy(cmd);
 	}
 	BND_LOCK(gContextManagerNodeLock);
-	if (gContextManagerNode && (gContextManagerNode->m_team == that->m_team && that->m_team->m_threads == NULL)) {
+	if (gContextManagerNode && (gContextManagerNode->m_home == that->m_team && that->m_team->m_threads == NULL)) {
 		contextManagerNode = gContextManagerNode;
 		gContextManagerNode = NULL;
 	}
@@ -626,7 +626,9 @@ binder_thread_Write(binder_thread_t *that, void *_buffer, int _size, signed long
 					binder_transaction_SetUserFlags(t, tr.flags);
 					binder_transaction_SetPriority(t, (s16)tr.priority);
 					binder_transaction_SetReply(t, cmd == bcREPLY);
-					
+					DPRINTF(4, ("Command %s %p: size=%p, first=%p\n",
+                        cmd == bcTRANSACTION ? "transaction" : "reply", t,
+                        tr.data_size, tr.data_size > 0 ? (*(u32*)tr.data.ptr.buffer) : 0));
 					if (cmd == bcTRANSACTION) {
 						target = tr.target.handle;
 						if(target) {
@@ -644,7 +646,7 @@ binder_thread_Write(binder_thread_t *that, void *_buffer, int _size, signed long
 							}
 							BND_UNLOCK(gContextManagerNodeLock);
 						}
-						DPRINTF(4, (KERN_WARNING "Transacting %p to %d(%p) in team %p\n", t, target, t->target, t->target ? t->target->m_team : NULL));
+						DPRINTF(4, (KERN_WARNING "Transacting %p to %d(%p) in team %p\n", t, target, t->target, t->target ? t->target->m_home : NULL));
 					}
 					
 					BND_LOCK(that->m_lock);
@@ -716,8 +718,12 @@ binder_thread_Write(binder_thread_t *that, void *_buffer, int _size, signed long
 				DBREFS((KERN_WARNING "bcSTOP_PROCESS of %d\n", target));
 				if (BND_ATTEMPT_ACQUIRE(binder_proc, that->m_team, STRONG, that)) {
 					binder_node_t *node = binder_proc_Descriptor2Node(that->m_team, target,that,WEAK);
-					if (node != NULL && binder_node_Home(node) != NULL) {
-						binder_proc_Stop(binder_node_Home(node), now ? TRUE : FALSE);
+					if (node != NULL) {
+						binder_proc_t* proc = binder_node_AcquireHome(node, that);
+						if (proc != NULL) {
+							binder_proc_Stop(proc, now ? TRUE : FALSE);
+							BND_RELEASE(binder_proc, proc, STRONG, that);
+						}
 						BND_RELEASE(binder_node, node, WEAK,that);
 					}
 					BND_RELEASE(binder_proc, that->m_team, STRONG, that);
@@ -732,6 +738,47 @@ binder_thread_Write(binder_thread_t *that, void *_buffer, int _size, signed long
 					binder_proc_Stop(that->m_team, now ? TRUE : FALSE);
 					BND_RELEASE(binder_proc, that->m_team, STRONG, that);
 				}
+				iobuffer_mark_consumed(&io);
+			} break;
+			case bcREQUEST_DEATH_NOTIFICATION: {
+				void *cookie;
+				binder_node_t *node;
+				if (iobuffer_read_u32(&io, &target)) goto finished;
+				if (iobuffer_read_void(&io, &cookie)) goto finished;
+				DPRINTF(5, (KERN_WARNING "bcREQUEST_DEATH_NOTIFICATION of %d w/cookie %p\n", target, cookie));
+				node = binder_proc_Descriptor2Node(that->m_team, target, that, WEAK);
+				if(node != NULL) {
+					binder_proc_t* proc = binder_node_AcquireHome(node, node);
+					if (proc != NULL) {
+						binder_proc_RequestDeathNotification(proc, that->m_team, cookie);
+						BND_RELEASE(binder_proc, proc, STRONG, node);
+					}
+					BND_RELEASE(binder_node, node, WEAK, that);
+				}
+				iobuffer_mark_consumed(&io);
+			} break;
+			case bcCLEAR_DEATH_NOTIFICATION: {
+				void *cookie;
+				binder_node_t *node;
+				if (iobuffer_read_u32(&io, &target)) goto finished;
+				if (iobuffer_read_void(&io, &cookie)) goto finished;
+				DPRINTF(5, (KERN_WARNING "bcCLEAR_DEATH_NOTIFICATION of %d w/cookie %p\n", target, cookie));
+				node = binder_proc_Descriptor2Node(that->m_team, target, that, WEAK);
+				if(node != NULL) {
+					binder_proc_t* proc = binder_node_AcquireHome(node, node);
+					if (proc != NULL) {
+						binder_proc_ClearDeathNotification(proc, that->m_team, cookie);
+						BND_RELEASE(binder_proc, proc, STRONG, node);
+					}
+					BND_RELEASE(binder_node, node, WEAK, that);
+				}
+				iobuffer_mark_consumed(&io);
+			} break;
+			case bcDEAD_BINDER_DONE: {
+				void *cookie;
+				if (iobuffer_read_void(&io, &cookie)) goto finished;
+				DPRINTF(5, (KERN_WARNING "bcDEAD_BINDER_DONE of cookie %p\n", cookie));
+				binder_proc_DeadBinderDone(that->m_team, cookie);
 				iobuffer_mark_consumed(&io);
 			} break;
 			default: {
@@ -800,6 +847,11 @@ binder_thread_ReturnTransaction(binder_thread_t *that, iobuffer_t *io, binder_tr
 		if (that->pendingChild) binder_thread_ReleasePendingChild(that);
 		iobuffer_write_u32(io, brDEAD_REPLY);
 		freeImmediately = TRUE;
+	} else if (binder_transaction_IsFailedReply(t)) {
+		DPRINTF(5, (KERN_WARNING " -- binder_transaction_IsFailedReply()\n"));
+		if (that->pendingChild) binder_thread_ReleasePendingChild(that);
+		iobuffer_write_u32(io, brFAILED_REPLY);
+		freeImmediately = TRUE;
 	} else {
 		DPRINTF(5, (KERN_WARNING " -- else binder_transaction_IsReply(%p): %s\n", t, binder_transaction_IsReply(t) ? "true" : "false"));
 		if (that->pendingChild) binder_thread_ReleasePendingChild(that);
@@ -817,6 +869,11 @@ binder_thread_ReturnTransaction(binder_thread_t *that, iobuffer_t *io, binder_tr
 			tr.data.ptr.offsets = NULL;
 		}
 
+        DPRINTF(4, ("Response %s %p: size=%p, data=%p, first=%p\n",
+            !binder_transaction_IsReply(t) == bcTRANSACTION ? "transaction" : "reply", t,
+            tr.data_size, tr.data.ptr.buffer,
+            tr.data_size > 0 ? (*(u32*)binder_transaction_Data(t)) : 0));
+                        
 		DPRINTF(5, (KERN_WARNING "%s(%p:%d, %p, %p) tr-data %p %d tr-offsets %p %d\n", __func__, that->m_team, that->m_thid, io, t, tr.data.ptr.buffer, tr.data_size, tr.data.ptr.offsets, tr.offsets_size));
 
 		if (binder_transaction_IsReply(t)) {
@@ -824,7 +881,13 @@ binder_thread_ReturnTransaction(binder_thread_t *that, iobuffer_t *io, binder_tr
 			tr.code = 0;
 			iobuffer_write_u32(io, brREPLY);
 		} else {
-			tr.target.ptr = t->target ? binder_node_Ptr(t->target) : NULL;
+			if (t->target) {
+				tr.target.ptr = binder_node_Ptr(t->target);
+				tr.cookie = binder_node_Cookie(t->target);
+			} else {
+				tr.target.ptr = NULL;
+				tr.cookie = NULL;
+			}
 			tr.code = binder_transaction_Code(t);
 			iobuffer_write_u32(io, brTRANSACTION);
 		}
@@ -1047,7 +1110,6 @@ binder_thread_Read(binder_thread_t *that, void *buffer, int size, signed long *c
 	status_t err = 0;
 	bool isRoot;
 	bool isInline;
-	binder_proc_t *proc;
 	/* ditch these next two lines under linux, if we can */
 	pid_t me = current->pid;
 
@@ -1118,9 +1180,11 @@ binder_thread_Read(binder_thread_t *that, void *buffer, int size, signed long *c
 				
 			/*	Perform node conversion if not already done. */
 			if (!binder_transaction_IsReferenced(t)) {
+				binder_proc_t *proc = NULL;
+				int acquiredProc = 0;
+
 				DBREAD((KERN_WARNING "Thread %d performing ref resolution!\n", that->m_thid));
 				origRemain = iobuffer_remaining(&io);
-				proc = 0;
 				err = 0;
 				if (isRoot) {
 					// If we are replying with the root object, we first need to block
@@ -1141,7 +1205,12 @@ binder_thread_Read(binder_thread_t *that, void *buffer, int size, signed long *c
 				 * team.
 				 */
 				if (err == 0) {
-					proc = t->target ? binder_node_Home(t->target) : that->m_pendingReply ? binder_thread_Team(that->m_pendingReply->sender) : NULL;
+					if (t->target) {
+						proc = binder_node_AcquireHome(t->target, that);
+						acquiredProc = proc != NULL;
+					} else {
+						proc = that->m_pendingReply ? binder_thread_Team(that->m_pendingReply->sender) : NULL;
+					}
 					err = proc ? 0 : -EINVAL;
 				}
 				if (!proc) {
@@ -1153,18 +1222,30 @@ binder_thread_Read(binder_thread_t *that, void *buffer, int size, signed long *c
 				if (err == 0)
 					err = binder_transaction_ConvertToNodes(t, that->m_team, &io);
 				/*	If we got some error, report error to the caller so they don't wait forever. */
-				if (err < 0 && !binder_transaction_IsReply(t))
-					iobuffer_write_u32(&io, brDEAD_REPLY);
+				if (err < 0 && !binder_transaction_IsReply(t)) {
+					if(proc && binder_proc_IsAlive(proc))
+						iobuffer_write_u32(&io, brFAILED_REPLY);
+					else
+						iobuffer_write_u32(&io, brDEAD_REPLY);
+				}
 				iobuffer_mark_consumed(&io);
+
+				if (acquiredProc) {
+					BND_RELEASE(binder_proc, proc, STRONG, that);
+				}
+
 				if (err < 0 || iobuffer_remaining(&io) < 4) {
 					/*	XXX Fail if we run out of room.  Do we need to deal with this
 						better.  (It's only a problem if the caller is trying to read in
 						to a buffer that isn't big enough, in total, for a returned
 						transaction. */
 					DPRINTF(0, (KERN_WARNING "Aborting transaction: err: %08x (or not enough room to return last command)\n", err));
-					binder_transaction_Destroy(t);
 					err = 0;
-					goto finished;
+					if(!binder_transaction_IsReply(t)) {
+						binder_transaction_Destroy(t);
+						goto finished;
+					}
+					binder_transaction_SetFailedReply(t, TRUE);
 				}
 				
 				/*	If we aren't sending anything back to the caller, we can
@@ -1289,6 +1370,7 @@ binder_thread_Read(binder_thread_t *that, void *buffer, int size, signed long *c
 		} else {
 			DPRINTF(2, (KERN_WARNING "Thread %d waiting for request, vthid: %d!\n", that->m_thid, that->virtualThid));
 			BND_ASSERT(that->virtualThid == 0, "Waiting for transaction with vthid != 0");
+			BND_ASSERT(that->m_pendingReply == NULL, "Waiting for transaction with pending reply");
 			
 			if (that->m_teamRefs > 0) {
 				int relCount;
@@ -1317,6 +1399,10 @@ binder_thread_Read(binder_thread_t *that, void *buffer, int size, signed long *c
 			} else if (err == REQUEST_EVENT_READY) {
 				iobuffer_write_u32(&io, brEVENT_OCCURRED);
 				iobuffer_write_u32(&io, that->returnedEventPriority);
+				iobuffer_mark_consumed(&io);
+				err = 0;
+			} else if (err == DEATH_NOTIFICATION_READY) {
+				binder_proc_GetPendingDeathNotifications(that->m_team, that, &io);
 				iobuffer_mark_consumed(&io);
 				err = 0;
 			} else if (err == -ETIMEDOUT) {

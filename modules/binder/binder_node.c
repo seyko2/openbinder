@@ -71,26 +71,32 @@ binder_node_t *binder_node_init(binder_proc_t *team, void *ptr, void *cookie)
 {
 	binder_node_t *that = ALLOC_NODE;
 	atomic_inc(&g_count);
-	DPRINTF(5, (KERN_WARNING "%s(team=%p, ptr=%p): %p\n", __func__, team, ptr, that));
+	DPRINTF(5, (KERN_WARNING "%s(team=%p, ptr=%p, cookie=%p): %p\n", __func__,
+                team, ptr, cookie, that));
 	atomic_set(&that->m_primaryRefs, 0);
 	atomic_set(&that->m_secondaryRefs, 0);
 	that->m_ptr = ptr;
 	that->m_cookie = cookie;
-	that->m_team = team;
-	if (that->m_team) BND_ACQUIRE(binder_proc, that->m_team, STRONG, that);
+	that->m_home = team;
+	if (that->m_home) BND_ACQUIRE(binder_proc, that->m_home, WEAK, that);
 	return that;
 }
 
 void binder_node_destroy(binder_node_t *that)
 {
 	atomic_dec(&g_count);
-	DPRINTF(4, (KERN_WARNING "%s(%p): ptr=%p\n", __func__, that, that->m_ptr));
-	if (that->m_team) {
+	DPRINTF(4, (KERN_WARNING "%s(%p): ptr=%p, cookie=%p\n", __func__, that,
+                that->m_ptr, that->m_cookie));
+	if (that->m_home) {
 		if (that->m_ptr) {
-			binder_proc_Transact(that->m_team, binder_transaction_CreateRef(tfDecRefs, that->m_ptr, that->m_cookie, that->m_team));
-			binder_proc_RemoveLocalMapping(that->m_team, that->m_ptr, that);
+			binder_proc_t* proc = binder_node_AcquireHome(that, that);
+			if (proc) {
+				binder_proc_Transact(proc, binder_transaction_CreateRef(tfDecRefs, that->m_ptr, that->m_cookie, proc));
+				binder_proc_RemoveLocalMapping(proc, that->m_ptr, that);
+				BND_RELEASE(binder_proc, proc, STRONG, that);
+			}
 		}
-		BND_RELEASE(binder_proc, that->m_team, STRONG, that);
+		BND_RELEASE(binder_proc, that->m_home, WEAK, that);
 	}
 	FREE_NODE(that);
 }
@@ -98,10 +104,36 @@ void binder_node_destroy(binder_node_t *that)
 void 
 binder_node_Released(binder_node_t *that)
 {
+	binder_proc_t* proc = binder_node_AcquireHome(that, that);
 	DPRINTF(4, (KERN_WARNING "%s(%p): ptr=%p\n", __func__, that, that->m_ptr));
-	if (that->m_team) {
+	if (proc) {
 		DPRINTF(5, (KERN_WARNING " -- m_secondaryRefs=%d\n",atomic_read(&that->m_secondaryRefs)));
-		binder_proc_Transact(that->m_team, binder_transaction_CreateRef(tfRelease,that->m_ptr,that->m_cookie,that->m_team));
-		binder_proc_RemoveLocalStrongRef(that->m_team, that);
+		binder_proc_Transact(proc, binder_transaction_CreateRef(tfRelease,that->m_ptr,that->m_cookie,proc));
+		binder_proc_RemoveLocalStrongRef(proc, that);
+		BND_RELEASE(binder_proc, proc, STRONG, that);
 	}
+}
+
+binder_proc_t*
+binder_node_AcquireHome(binder_node_t *that, const void *id)
+{
+	if (that->m_home && BND_ATTEMPT_ACQUIRE(binder_proc, that->m_home, STRONG, id)) {
+		return that->m_home;
+	}
+	return NULL;
+}
+
+status_t
+binder_node_Send(binder_node_t *that, struct binder_transaction *t)
+{
+	binder_proc_t* proc = binder_node_AcquireHome(that, that);
+	if (proc) {
+		status_t res = binder_proc_Transact(proc, t);
+		BND_RELEASE(binder_proc, proc, STRONG, that);
+		return res;
+	}
+
+	if (t->sender) binder_thread_ReplyDead(t->sender);
+	binder_transaction_Destroy(t);
+	return 0;
 }
