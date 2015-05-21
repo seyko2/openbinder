@@ -764,6 +764,7 @@ binder_proc_death_notification_dec_ref(binder_proc_t *that, death_notification_t
 			spin_lock_irqsave(&that->m_spin_lock, flags);
 			first = hlist_empty(&that->m_pending_death_notifications) && hlist_empty(&that->m_deleted_death_notifications);
 #if BINDER_DEBUG
+	if (1) {
             struct hlist_node *_p, *_p2;
             death_notification_t *node;
             hlist_for_each_entry_safe(node, _p, _p2, &that->m_outgoing_death_notifications, observed_or_active) {
@@ -783,6 +784,7 @@ binder_proc_death_notification_dec_ref(binder_proc_t *that, death_notification_t
             }
             DBDEATH((KERN_WARNING "DeathNot %p: observer.next=%p, active.next=%p\n",
                      death, death->observer.next, death->observed_or_active.next));
+	}
 #endif
             BND_ASSERT(death->observer.next == LIST_POISON1, "death ref count reached 0 while still on observer list");
             BND_ASSERT(death->observed_or_active.next == LIST_POISON1, "death ref count reached 0 while still on observed_or_active list");

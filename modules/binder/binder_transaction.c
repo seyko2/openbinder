@@ -523,12 +523,12 @@ binder_transaction_CopyTransactionData(binder_transaction_t *that, binder_proc_t
 				// BUSTED!
 				DPRINTF(0, (KERN_WARNING " -- Couldn't copy %u of %u bytes from user-land %p to %p\n", not_copied, that->data_size, that->data_ptr, to));
 			}
-            DPRINTF(4, ("Copied transaction %p: data=%p, size=%p, not_copied=%p\n",
+            DPRINTF(4, ("Copied transaction %p: data=%p, size=%ull, not_copied=%ull\n",
                 that, binder_transaction_Data(that),
                 binder_transaction_DataSize(that),
                 not_copied));
             if (binder_transaction_DataSize(that) > 0) {
-                DPRINTF(4, ("Copied transaction %p: my_first=%p, user_first=%p\n",
+                DPRINTF(4, ("Copied transaction %p: my_first=%ull, user_first=%ull\n",
                     that,
                     (*(u32*)binder_transaction_Data(that)),
                     (*(u32*)that->data_ptr)));

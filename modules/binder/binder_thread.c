@@ -630,7 +630,7 @@ binder_thread_Write(binder_thread_t *that, void *_buffer, int _size, signed long
 					binder_transaction_SetUserFlags(t, tr.flags);
 					binder_transaction_SetPriority(t, (s16)tr.priority);
 					binder_transaction_SetReply(t, cmd == bcREPLY);
-					DPRINTF(4, ("Command %s %p: size=%p, first=%p\n",
+			DPRINTF(4, ("Command %s %p: size=%ul, first=%ul\n",
                         cmd == bcTRANSACTION ? "transaction" : "reply", t,
                         tr.data_size, tr.data_size > 0 ? (*(u32*)tr.data.ptr.buffer) : 0));
 					if (cmd == bcTRANSACTION) {
@@ -873,7 +873,7 @@ binder_thread_ReturnTransaction(binder_thread_t *that, iobuffer_t *io, binder_tr
 			tr.data.ptr.offsets = NULL;
 		}
 
-        DPRINTF(4, ("Response %s %p: size=%p, data=%p, first=%p\n",
+        DPRINTF(4, ("Response %s %p: size=%ull, data=%p, first=%ull\n",
             !binder_transaction_IsReply(t) == bcTRANSACTION ? "transaction" : "reply", t,
             tr.data_size, tr.data.ptr.buffer,
             tr.data_size > 0 ? (*(u32*)binder_transaction_Data(t)) : 0));
