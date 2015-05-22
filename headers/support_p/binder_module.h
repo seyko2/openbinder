@@ -88,14 +88,17 @@ typedef struct binder_version {
 
 #define BINDER_IOC_MAGIC 'b'
 #define BINDER_WRITE_READ _IOWR(BINDER_IOC_MAGIC, 1, binder_write_read_t)
-#define BINDER_SET_WAKEUP_TIME	_IOW(BINDER_IOC_MAGIC, 2, binder_wakeup_time_t)
 #define	BINDER_SET_IDLE_TIMEOUT	_IOW(BINDER_IOC_MAGIC, 3, bigtime_t)
-#define	BINDER_SET_REPLY_TIMEOUT	_IOW(BINDER_IOC_MAGIC, 4, bigtime_t)
 #define	BINDER_SET_MAX_THREADS	_IOW(BINDER_IOC_MAGIC, 5, size_t)
 #define	BINDER_SET_IDLE_PRIORITY	_IOW(BINDER_IOC_MAGIC, 6, int)
 #define	BINDER_SET_CONTEXT_MGR	_IOW(BINDER_IOC_MAGIC, 7, int)
 #define	BINDER_THREAD_EXIT	_IOW(BINDER_IOC_MAGIC, 8, int)
 #define BINDER_VERSION _IOWR(BINDER_IOC_MAGIC, 9, binder_version_t)
+
+// the following 2 are not implemented in protocol v7/v8
+#define BINDER_SET_WAKEUP_TIME	_IOW(BINDER_IOC_MAGIC, 2, binder_wakeup_time_t)
+#define BINDER_SET_REPLY_TIMEOUT _IOW(BINDER_IOC_MAGIC, 4, bigtime_t)
+
 #define BINDER_IOC_MAXNR 9
 
 // NOTE: Two special error codes you should check for when calling
@@ -207,7 +210,7 @@ enum BinderDriverReturnProtocol {
 		void *: cookie for binder
 	*/
 	
-	brEVENT_OCCURRED,
+	brEVENT_OCCURRED,	// not implemented in v7/v8
 	/*
 		This is returned when the bcSET_NEXT_EVENT_TIME has elapsed.
 		At this point the next event time is set to B_INFINITE_TIMEOUT,
@@ -248,7 +251,7 @@ enum BinderDriverReturnProtocol {
 };
 
 enum BinderDriverCommandProtocol {
-	bcNOOP = 0,
+	bcNOOP = 0,	// not implemented in v7/v8
 	/*	No parameters! */
 
 	bcTRANSACTION,
@@ -268,7 +271,7 @@ enum BinderDriverCommandProtocol {
 		void *: ptr to transaction data received on a read
 	*/
 	
-	bcTRANSACTION_COMPLETE,
+	bcTRANSACTION_COMPLETE, // not implemented in v7/v8
 	/*
 		No parameters... send when finishing an asynchronous transaction.
 	*/
@@ -294,12 +297,12 @@ enum BinderDriverCommandProtocol {
 		int:	descriptor
 	*/
 	
-	bcRETRIEVE_ROOT_OBJECT,
+	bcRETRIEVE_ROOT_OBJECT, // not implemented in v7/v8
 	/*
 		int:	process ID
 	*/
 	
-	bcSET_THREAD_ENTRY,
+	bcSET_THREAD_ENTRY, // not implemented in v7/v8
 	/*
 		void *:	thread entry function for new threads created to handle tasks
 		void *: argument passed to those threads
@@ -323,7 +326,7 @@ enum BinderDriverCommandProtocol {
 		of looping threads it has available.
 	*/
 	
-	bcSYNC,
+	bcSYNC, // not implemented in v7/v8
 	/*
 		No parameters.
 		Upon receiving this command, the driver waits until all
@@ -342,13 +345,13 @@ enum BinderDriverCommandProtocol {
 	*/
 #endif
 	
-	bcSTOP_PROCESS,
+	bcSTOP_PROCESS, // not implemented in v7/v8
 	/*
 		int: descriptor of process's root object
 		int: 1 to stop immediately, 0 when root object is released
 	*/
 
-	bcSTOP_SELF,
+	bcSTOP_SELF, // not implemented in v7/v8
 	/*
 		int: 1 to stop immediately, 0 when root object is released
 	*/
