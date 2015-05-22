@@ -494,9 +494,8 @@ static int __init init_binder(void)
 		result = PTR_ERR(simple);
 		goto unadd_cdev;
 	}
-
-	goto exit0;
     #endif
+	goto exit0;
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 unadd_cdev:
@@ -508,9 +507,7 @@ unalloc:
 	unregister_chrdev_region(binder_major, BINDER_NUM_DEVS);
 free_pools:
 	destroy_pools();
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
 exit0:
-#endif
 	return result;
 }
 
