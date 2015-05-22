@@ -88,16 +88,16 @@ typedef struct binder_version {
 
 #define BINDER_IOC_MAGIC 'b'
 #define BINDER_WRITE_READ _IOWR(BINDER_IOC_MAGIC, 1, binder_write_read_t)
-#define	BINDER_SET_IDLE_TIMEOUT	_IOW(BINDER_IOC_MAGIC, 3, bigtime_t)
 #define	BINDER_SET_MAX_THREADS	_IOW(BINDER_IOC_MAGIC, 5, size_t)
-#define	BINDER_SET_IDLE_PRIORITY	_IOW(BINDER_IOC_MAGIC, 6, int)
 #define	BINDER_SET_CONTEXT_MGR	_IOW(BINDER_IOC_MAGIC, 7, int)
 #define	BINDER_THREAD_EXIT	_IOW(BINDER_IOC_MAGIC, 8, int)
 #define BINDER_VERSION _IOWR(BINDER_IOC_MAGIC, 9, binder_version_t)
 
-// the following 2 are not implemented in protocol v7/v8
-#define BINDER_SET_WAKEUP_TIME	_IOW(BINDER_IOC_MAGIC, 2, binder_wakeup_time_t)
+// the following 4 are not implemented in protocol v7/v8
+#define BINDER_SET_WAKEUP_TIME _IOW(BINDER_IOC_MAGIC, 2, binder_wakeup_time_t)
+#define BINDER_SET_IDLE_TIMEOUT _IOW(BINDER_IOC_MAGIC, 3, bigtime_t)
 #define BINDER_SET_REPLY_TIMEOUT _IOW(BINDER_IOC_MAGIC, 4, bigtime_t)
+#define BINDER_SET_IDLE_PRIORITY _IOW(BINDER_IOC_MAGIC, 6, int)
 
 #define BINDER_IOC_MAXNR 9
 
